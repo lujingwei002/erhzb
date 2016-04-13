@@ -12,10 +12,12 @@ require('gatesrv.main')
 require('login.main')
 
 --测试protobuf是确初始化
-Pblua.import('data/dbproto/user.proto')
-Pblua.import('data/proto/login.proto')
-Pblua.import('data/proto/gatesrv.proto')
-local user = Pblua.msgnew('dbproto.User')
+Pblua.mappath('dbproto', '../doc/dbproto')
+Pblua.mappath('proto',   '../doc/proto')
+Pblua.import('dbproto/actor.proto')
+Pblua.import('proto/login.proto')
+Pblua.import('proto/gatesrv.proto')
+local user = Pblua.msgnew('dbproto.Actor')
 assert(user)
 
 --测试json

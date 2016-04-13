@@ -448,7 +448,7 @@ namespace Websocket
     //发送帧
     int send_frame(int sid, int opcode, const void* data, unsigned short datalen)
     {
-        LOG_DEBUG("Websocket.send_frame opcode(%d) datalen(%d)", opcode, data, datalen);
+        LOG_LOG("Websocket.send_frame opcode(%d) datalen(%d)", opcode, datalen);
         Session* session = session_find(sid);
         if(!session)
         {

@@ -59,7 +59,6 @@ namespace Dbclient
 
     int dispatch_frame(int sockfd, const char* data, size_t datalen)
     {
-        printf("recv a frame:%s\n", data);
         char *buf = (char *)data;
 
         unsigned short action_len = *(unsigned short*)buf;
@@ -71,13 +70,12 @@ namespace Dbclient
         char c = buf[0];
         buf[0] = 0;
         Script::pushluafunction(action);
-        //printf("safsafsafasfsfasaf %d %s\n", rt, action);
+        LOG_LOG("dbclient recv a frame action(%s)\n", action);
         buf[0] = c;
 
         unsigned short arg_num = *(unsigned short*)buf;
         buf += 2;
 
-        //printf("safsafsafasfsfasaf %d\n", arg_num);
         for (int i = 0; i < arg_num; i++)
         {
             int type = *(unsigned char*)buf;
@@ -182,6 +180,7 @@ namespace Dbclient
     {
         if (!is_connect_)
         {
+            LOG_ERROR("dbclient is not connect");
             return 1;
         }
         return _real_send(sockfd, data, datalen);
@@ -191,6 +190,7 @@ namespace Dbclient
     {
         if (!is_connect_)
         {
+            LOG_ERROR("dbclient is not connect");
             return 0;
         }
         char *action = NULL;

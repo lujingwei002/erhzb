@@ -1,6 +1,6 @@
 /*
 ** Lua binding: dbsrv
-** Generated automatically by tolua++-1.0.92 on Tue Apr 26 20:06:21 2016.
+** Generated automatically by tolua++-1.0.92 on Wed Apr 13 08:47:12 2016.
 */
 
 #ifndef __cplusplus
@@ -251,6 +251,32 @@ static int tolua_dbsrv_Sqlconn_affectedrows00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
+/* function: Sqlconn::update */
+#ifndef TOLUA_DISABLE_tolua_dbsrv_Sqlconn_update00
+static int tolua_dbsrv_Sqlconn_update00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isnoobj(tolua_S,1,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  {
+   Sqlconn::update();
+  }
+ }
+ return 0;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'update'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
 /* Open function */
 TOLUA_API int tolua_dbsrv_open (lua_State* tolua_S)
 {
@@ -271,6 +297,7 @@ TOLUA_API int tolua_dbsrv_open (lua_State* tolua_S)
    tolua_function(tolua_S,"select",tolua_dbsrv_Sqlconn_select00);
    tolua_function(tolua_S,"escape",tolua_dbsrv_Sqlconn_escape00);
    tolua_function(tolua_S,"affectedrows",tolua_dbsrv_Sqlconn_affectedrows00);
+   tolua_function(tolua_S,"update",tolua_dbsrv_Sqlconn_update00);
   tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);
  return 1;

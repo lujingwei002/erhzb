@@ -3,10 +3,10 @@ module('Login', package.seeall)
 
 function GET(sid, uid, data)
     print('Login.GET', sid, uid, data)
-    local actordata = Pblua.msgnew('dbproto.User')
+    local actordata = Pblua.msgnew('dbproto.Actor')
     actordata:parse_from_string(data or '')
     actordata.uid = uid
-    --print(actordata:debug_string())
+    print(actordata:debug_string())
     --Dbclient.post('Login.SET', uid, actordata:tostring())
     local reply = Pblua.msgnew('login.LOGIN_R')
     reply.uid = uid
@@ -16,7 +16,6 @@ end
 
 
 function MSG_LOGIN(sid, msg)
-    print('i am login')
     Dbclient.post('Login.LOGIN', sid, msg.openid, msg.time, msg.sig)
 end
 

@@ -9,6 +9,10 @@ namespace Sqlconn
 
     void update()
     {
+        if (conn_ == NULL)
+        {
+            return;
+        }
         if(mysql_ping(conn_) != 0)
         {
             LOG_ERROR("%s", mysql_error(conn_));

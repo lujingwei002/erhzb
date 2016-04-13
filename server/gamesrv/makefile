@@ -11,10 +11,10 @@ SOURCE = $(wildcard \
 		 ../srvlib/net/*.cc\
 		 ../srvlib/log/*.cc\
 		 ../srvlib/encrypt/*.cc\
+		 ../srvlib/pblua/*.cc\
 		 script/*.cc\
 		 dbclient/*.cc\
 		 gatesrv/*.cc\
-		 pblua/*.cc\
 		 json/*.cc\
 		 main.cc\
 		 interface.cc\

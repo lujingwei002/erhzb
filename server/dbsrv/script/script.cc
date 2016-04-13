@@ -12,7 +12,7 @@ namespace Script
         L = lua_open();
         luaL_openlibs(L);
         luaopen_dbsrv(L);
-//        luaopen_mysql(L);
+        luaopen_pblua(L);
         
         if(dofile("main.lua"))
         {

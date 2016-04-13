@@ -4,6 +4,7 @@ package login;
 //登录协议
 //secret 为 lol_client
 //签名算法法为 sig = md5(openid + time.tostring() + secret)
+//回复LOGIN_R
 message LOGIN
 {
     //微信平台开放id
@@ -25,3 +26,19 @@ message LOGIN_R
 }
 
 
+//获取玩家的基础数据
+//回复GETDATA_R
+message GETDATA
+{
+
+}
+
+message GETDATA_R
+{
+    //元宝，钻石
+    optional int32 diamond = 1[default = 0];
+    //用户名
+    optional string username = 2[default = ''];
+    //头像
+    optional string headimg = 3[default = ''];
+}

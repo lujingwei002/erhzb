@@ -18,6 +18,7 @@
 #include <list>
 
 #include "log/log.h"
+#include "pblua/pblua.h"
 #include "script/script.h"
 #include "net/net.h"
 #include "net/recvbuf.h"
