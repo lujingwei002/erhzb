@@ -22,7 +22,8 @@ function dispatch_msg(sid, modname, actionname, msg)
     print(msg:debug_string())
     local mod = _G[modname]
     local action = mod['MSG_'..actionname]
-    if not Actor.actor_session[sid] then
+    local actor = Actor.actor_session[sid]
+    if not actor then
         Login.msg_login(sid, msg)
         return
     end

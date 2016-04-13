@@ -66,5 +66,8 @@ end
 
 function MSG_GETDATA(actor, msg)
     print('hehhahe')
+    local reply = Pblua.msgnew('login.GETDATA_R')
+    reply.diamond = 100
+    Actor.post_msg(actor, reply)
 end
 

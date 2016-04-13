@@ -119,36 +119,41 @@ namespace Gatesrv
         else if (cmd == 1)
         {
             //数据帧
-            char *msgname = dataptr;
-            unsigned short msgnamelen = 0;
 
-            LOG_DEBUG("gatesrv recv a frame sid %d\n", sid);
-
-            for (int i = 0; i < datalen; i++)
-            {
-                if (*(dataptr +i) == '*' || *(dataptr +i) == 0)
-                {
-                    msgnamelen = i;
-                    dataptr += msgnamelen;
-                    datalen -= msgnamelen;
-                    break;
-                }
-            }
-            if (msgnamelen == 0)
-            {
-                return 0;
-            }
+            LOG_LOG("gatesrv recv a frame sid %d\n", sid);
 
 
             if (*dataptr == '*')
             {
+                dataptr += 1;
+                datalen -= 1;
+
+                char *msgname = dataptr;
+
+                unsigned short msgnamelen = 0;
+                for (int i = 0; i < datalen; i++)
+                {
+                    if (*(dataptr +i) == '*')
+                    {
+                        msgnamelen = i;
+                        break;
+                    }
+                }
+                if (msgnamelen == 0)
+                {
+                    LOG_ERROR("frame is wrong");
+                    return 0;
+                }
+                dataptr += (msgnamelen + 1);
+                datalen -= (msgnamelen + 1);
+
                 //分发到lua处理
                 static char funcname[64] = "Gatesrv.dispatch_json";
                 Script::pushluafunction(funcname);
                 lua_pushnumber(Script::L, sid);
                 lua_pushlstring(Script::L, msgname, msgnamelen);
                 push_luamsgname(msgname, msgnamelen);
-                lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
+                lua_pushlstring(Script::L, dataptr, datalen);
                 if (lua_pcall(Script::L, 5, 0, 0) != 0)
                 {
                     if (lua_isstring(Script::L, -1))
@@ -156,15 +161,33 @@ namespace Gatesrv
                         LOG_ERROR("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
                     }
                 }
-            } else 
+            } else if (*dataptr == 0)
             {
+                dataptr += 1;
+                datalen -= 1;
+
+                unsigned short msgnamelen = *(unsigned short*)dataptr;
+                msgnamelen = ntohs(msgnamelen);
+                dataptr += sizeof(unsigned short);
+                datalen -= sizeof(unsigned short);
+
+                char *msgname = dataptr;
+                dataptr += msgnamelen;
+                datalen -= msgnamelen;
+
+                char c = msgname[msgnamelen];
+                msgname[msgnamelen] = 0;
+                LOG_LOG("gatesrv recv a frame msgname %s msgnamelen %d datalen %d\n", msgname, msgnamelen, datalen);
+                msgname[msgnamelen] = c;
+
+
                 //分发到lua处理
                 static char funcname[64] = "Gatesrv.dispatch_proto";
                 Script::pushluafunction(funcname);
                 lua_pushnumber(Script::L, sid);
                 lua_pushlstring(Script::L, msgname, msgnamelen);
                 push_luamsgname(msgname, msgnamelen);
-                lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
+                lua_pushlstring(Script::L, dataptr, datalen);
                 if (lua_pcall(Script::L, 5, 0, 0) != 0)
                 {
                     if (lua_isstring(Script::L, -1))
@@ -266,9 +289,9 @@ namespace Gatesrv
            return 0;
        }
 
-       int plen = sizeof(unsigned short) + sizeof(sid) + msgnamelen + 1 + msgdatalen;
+       int plen = sizeof(unsigned short) + sizeof(sid) + 1 + sizeof(unsigned short) + msgnamelen + msgdatalen;
 
-       LOG_DEBUG("gatesrv send proto plen(%d) to sid(%d)\n", plen, sid);
+       LOG_LOG("gatesrv send proto plen(%d) msgname(%s) msgdatalen(%d) to sid(%d)\n", plen, msgname, msgdatalen, sid);
 
        //插入到缓冲区
        char* buf = Sendbuf::alloc(sockfd_, plen);
@@ -284,11 +307,14 @@ namespace Gatesrv
        *(unsigned int*)buf = sid;
        buf += 4;
 
+       *(unsigned char*)buf = 0;
+       buf += 1;
+
+       *(unsigned short*)buf = htons(msgnamelen);
+       buf += 2;
+
        memcpy(buf, msgname, msgnamelen);
        buf += msgnamelen;
-
-       buf[0] = 0;
-       buf += 1;
 
        memcpy(buf, msgdata, msgdatalen);
        buf += msgdatalen;
