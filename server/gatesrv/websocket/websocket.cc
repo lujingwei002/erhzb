@@ -432,13 +432,19 @@ namespace Websocket
         header.rsv = 0;
         header.opcode = opcode;
         header.mask = 0;//没有掩码
-        header.payload_len = 126;
-        
-        unsigned short real_len = htons(datalen);
-
-        _real_send(sockfd, &header, sizeof(header));
-        _real_send(sockfd, &real_len, sizeof(real_len));
-        _real_send(sockfd, data, datalen);
+        if (datalen >= 126)
+        {
+            header.payload_len = 126;
+            unsigned short real_len = htons(datalen);
+            _real_send(sockfd, &header, sizeof(header));
+            _real_send(sockfd, &real_len, sizeof(real_len));
+            _real_send(sockfd, data, datalen);
+        } else 
+        {
+            header.payload_len = 126;
+            _real_send(sockfd, &header, sizeof(header));
+            _real_send(sockfd, data, datalen);
+        }
         return 0;
     }
     
