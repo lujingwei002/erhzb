@@ -1,0 +1,5 @@
+package dbproto;
+
+message User{
+    optional int32 uid = 1[default = 0];
+} 

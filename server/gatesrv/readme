@@ -1,0 +1,17 @@
+和前端的协议格式
+
+
+proto文件示例
+
+package login;
+message LOGIN
+{
+    optional int32 uid = 1[default = 0];
+};
+
+
+--发送文本
+socket.send('login.LOGIN*{uid = 1}')
+
+--发送二进制度
+socket.send('login.LOGIN0{uid = 1}')

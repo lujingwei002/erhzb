@@ -1,0 +1,3 @@
+
+$cfile "websocket/websocket.h"
+$cfile "gameclient/gameclient.h"

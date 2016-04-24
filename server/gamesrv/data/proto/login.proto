@@ -1,0 +1,10 @@
+package login;
+
+
+//登录协议
+message LOGIN
+{
+    optional int32 uid = 1[default = 0];
+}
+
+

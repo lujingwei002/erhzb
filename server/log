@@ -1,0 +1,20 @@
+2016-04-23
+实现了websocket协议
+gamesrv的消息分发到lua
+
+2016.04.24
+实现了dbsrv
+实现了gamesrv dbsrv的通信协议
+框基本完成,在考虑要不要加入网关
+还是加入网关吧
+TODO:protobuf接口, mysql接口
+
+
+
+
+
+
+
+
+
+
