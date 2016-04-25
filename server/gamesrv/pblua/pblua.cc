@@ -22,9 +22,9 @@ int s_msg_new_times = 0;
 int s_msg_delete_times = 0;
 
 void pblua_stat(){
-    LOG("pblua msg count:%d", s_msg_count);
-    LOG("pblua msg new times:%d", s_msg_new_times);
-    LOG("pblua msg delete times:%d", s_msg_delete_times);
+    LOG_LOG("pblua msg count:%d", s_msg_count);
+    LOG_LOG("pblua msg new times:%d", s_msg_new_times);
+    LOG_LOG("pblua msg delete times:%d", s_msg_delete_times);
 }
 
 google::protobuf::MessageFactory* pblua_factory(){
@@ -35,17 +35,17 @@ google::protobuf::Message* pblua_load_msg(const char* type_name){
     google::protobuf::Message* message = NULL;
     const google::protobuf::Descriptor* descriptor = pool->FindMessageTypeByName(type_name);
     if(descriptor == NULL){
-        LOG("can not find msg %s", type_name);
+        LOG_LOG("can not find msg %s", type_name);
         return NULL;
     }
     const google::protobuf::Message* prototype = factory->GetPrototype(descriptor);
     if(prototype == NULL){
-        LOG("can not find msg %s", type_name);
+        LOG_LOG("can not find msg %s", type_name);
         return NULL;
     }
     message = prototype->New();
     if(message == NULL){
-        LOG("can not find msg %s", type_name);
+        LOG_LOG("can not find msg %s", type_name);
         return NULL;
     }
     s_msg_count++;
@@ -104,7 +104,7 @@ static int limport(lua_State* L){
         const char *file_name = lua_tostring(L, 1);
         const google::protobuf::FileDescriptor *file = importer->Import(file_name);
         if(file == NULL){
-            LOG("import fail %s", file_name);
+            LOG_LOG("import fail %s", file_name);
             return 0;
         }
         lua_pushboolean(L, 1);
@@ -112,7 +112,7 @@ static int limport(lua_State* L){
         for(int i = 0; i < file->enum_type_count(); i++){
             const google::protobuf::EnumDescriptor *enum_type = file->enum_type(i);
             if(enum_type == NULL){
-                LOG("null");
+                LOG_LOG("null");
                 continue;
             }
             import_enum(L, enum_type);
@@ -120,13 +120,13 @@ static int limport(lua_State* L){
         for(int i = 0; i < file->message_type_count() ;i++){
             const google::protobuf::Descriptor *descriptor = file->message_type(i);
             if(descriptor == NULL){
-                LOG("null");
+                LOG_LOG("null");
                 continue;
             }
             for(int j = 0; j < descriptor->enum_type_count(); j++){
                 const google::protobuf::EnumDescriptor *enum_type = descriptor->enum_type(j);
                 if(enum_type == NULL){
-                    LOG("null");
+                    LOG_LOG("null");
                     continue;
                 }
                 import_enum(L, enum_type);
@@ -164,23 +164,23 @@ static int lmsg_parse_from_buf(lua_State *L){
     size_t str_len;
     message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     buf = (char *)lua_touserdata(L, 2);
     if(buf == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     str_len = (int)lua_tointeger(L, 3);
     google::protobuf::io::ArrayInputStream stream(buf, str_len);
     if(message->ParseFromZeroCopyStream(&stream) == 0){
-        LOG("parse fail\n");
+        LOG_LOG("parse fail\n");
         lua_pushboolean(L, false);
         return 1;
     }
@@ -192,27 +192,27 @@ static int lmsg_parse_from_buf(lua_State *L){
 static int lmsg_parse_from_string(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(lua_isstring(L, 2) == 0){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     size_t str_len;
     const char *str = lua_tolstring(L, 2, &str_len);
     if(str == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::io::ArrayInputStream stream(str, str_len);
     if(message->ParseFromZeroCopyStream(&stream) == 0){
-        LOG("parse fail\n");
+        LOG_LOG("parse fail\n");
         lua_pushboolean(L, false);
         return 1;
     }
@@ -226,11 +226,11 @@ static int lmsg_parse_from_string(lua_State *L){
 static int lmsg_serialize(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if (message_lua->message == NULL) {
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     char *buf = (char *)lua_touserdata(L, 2);
@@ -242,11 +242,11 @@ static int lmsg_serialize(lua_State *L){
 static int lmsg_bytesize(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if (message_lua->message == NULL) {
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     lua_pushinteger(L, message_lua->message->ByteSize());
@@ -256,7 +256,7 @@ static int lmsg_bytesize(lua_State *L){
 static int lmsg_isdirty(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     bool rt = (message_lua->dirty == 1);
@@ -340,7 +340,7 @@ static void pb_load_tree(const google::protobuf::Message *message, lua_State* L)
                 lua_pushboolean(L, reflection->GetBool(*message, field));
                 lua_settable(L, -3);
             }else{
-                LOG("awfsaf");
+                LOG_LOG("awfsaf");
             }
        }
    }
@@ -350,12 +350,12 @@ static void pb_load_tree(const google::protobuf::Message *message, lua_State* L)
 static int lmsg_totable(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     //遍历message, 生成table
@@ -366,12 +366,12 @@ static int lmsg_totable(lua_State *L){
 static int lmsg_debug_string(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     lua_pushstring(L, message->DebugString().data());
@@ -381,7 +381,7 @@ static int lmsg_debug_string(lua_State *L){
 static int lmsg_setdirty(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int flag = (int)lua_tonumber(L, 2);
@@ -393,32 +393,32 @@ static int lmsg_setdirty(lua_State *L){
 static int lmsg_mergefrom(lua_State *L){
     LuaMessage *message_lua1 = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message1 = message_lua1->message;
     if(message1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     LuaMessage *message_lua2 = (LuaMessage *)luaL_checkudata(L, 2, "LuaMessage");
     if(message_lua2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message2 = message_lua2->message;
     if(message2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     //pb刷新后, descriptor就对不上了
     if(message1->GetDescriptor() != message2->GetDescriptor()){
-        LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
+        LOG_LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
         return 0;
     }
     /*
     if(strcmp(message1->GetTypeName().data(), message2->GetTypeName().data())){
-        LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
+        LOG_LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
         return 0;
     }
     */
@@ -431,44 +431,44 @@ static int lmsg_mergefrom(lua_State *L){
 static int lmsg_repeated_merge_from(lua_State *L){
     RepeatedField *repeated_field1 = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     LuaMessage *message_lua1 = repeated_field1->message;
     if(message_lua1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field1 = repeated_field1->field;
     google::protobuf::Message *message1 = message_lua1->message;
     if(message1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection1 = message1->GetReflection();
     if(reflection1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     RepeatedField *repeated_field2 = (RepeatedField *)luaL_checkudata(L, 2, "RepeatedField");
     if(repeated_field2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     LuaMessage *message_lua2 = repeated_field2->message;
     if(message_lua2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field2 = repeated_field2->field;
     google::protobuf::Message *message2 = message_lua2->message;
     if(message2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection2 = message2->GetReflection();
     if(reflection2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     message_lua1->root_message->dirty = 1;
@@ -490,12 +490,12 @@ static int lmsg_repeated_merge_from(lua_State *L){
             google::protobuf::Message *message_new1 = reflection1->AddMessage(message1, field1);
             const google::protobuf::Message *message_new2 = &(reflection2->GetRepeatedMessage(*message2, field2, i));
             if(message_new1 == NULL || message_new2 == NULL){
-                LOG("null");
+                LOG_LOG("null");
                 break;
             }
             message_new1->CopyFrom(*message_new2);
         }else{
-            LOG("add fail file type :%d", field1->cpp_type());
+            LOG_LOG("add fail file type :%d", field1->cpp_type());
         }
     }
     lua_pushboolean(L, true);
@@ -506,32 +506,32 @@ static int lmsg_repeated_merge_from(lua_State *L){
 static int lmsg_copyfrom(lua_State *L){
     LuaMessage *message_lua1 = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message1 = message_lua1->message;
     if(message1 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     LuaMessage *message_lua2 = (LuaMessage *)luaL_checkudata(L, 2, "LuaMessage");
     if(message_lua2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message2 = message_lua2->message;
     if(message2 == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     //pb刷新后, descriptor就对不上了
     if(message1->GetDescriptor() != message2->GetDescriptor()){
-        LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
+        LOG_LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
         return 0;
     }
     /*
     if(strcmp(message1->GetTypeName().data(), message2->GetTypeName().data())){
-        LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
+        LOG_LOG("copy %s from %s", message1->GetTypeName().data(), message2->GetTypeName().data());
         return 0;
     }
     */
@@ -544,12 +544,12 @@ static int lmsg_copyfrom(lua_State *L){
 static int lmsg_msgname(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     lua_pushstring(L, message->GetTypeName().data());
@@ -559,12 +559,12 @@ static int lmsg_msgname(lua_State *L){
 static int lmsg_tostring(lua_State *L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     if(message_lua == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     std::string str;
@@ -580,14 +580,14 @@ static int lmsg_get(lua_State* L){
     LuaMessage *message_lua = (LuaMessage *)luaL_checkudata(L, 1, "LuaMessage");
     const char *field_name = lua_tostring(L, 2);
     google::protobuf::Message *message = message_lua->message;
-    //LOG(field_name);
+    //LOG_LOG(field_name);
     if(message == NULL){
         return 0;
     }
-    //LOG(field_name);
-    //LOG("%d", message_lua);
+    //LOG_LOG(field_name);
+    //LOG_LOG("%d", message_lua);
     const google::protobuf::Descriptor* descriptor = message->GetDescriptor();
-    //LOG(field_name);
+    //LOG_LOG(field_name);
     if(descriptor == NULL){
         return 0;
     }
@@ -631,14 +631,14 @@ static int lmsg_get(lua_State* L){
             lua_pushcfunction(L, lmsg_copyfrom);
             return 1;
         }else {
-            LOG("unknow field %s", field_name);
+            LOG_LOG("unknow field %s", field_name);
             return 0;
         }
     }
     if(field->is_repeated()){
         RepeatedField *repeated_field = (RepeatedField *)lua_newuserdata(L, sizeof(RepeatedField));
         if(repeated_field == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }   
         repeated_field->message = message_lua;
@@ -649,12 +649,12 @@ static int lmsg_get(lua_State* L){
     }else if(field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE){
         google::protobuf::Message *message_new = reflection->MutableMessage(message, field, pblua_factory());
         if(message_new == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         LuaMessage *message_embed = (LuaMessage *)lua_newuserdata(L, sizeof(LuaMessage));
         if(message_embed == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         message_embed->message = message_new;
@@ -690,7 +690,7 @@ static int lmsg_get(lua_State* L){
         lua_pushboolean(L, reflection->GetBool(*message, field));
         return 1;
     }else{
-        LOG("wrong type %d", field->type());
+        LOG_LOG("wrong type %d", field->type());
     }
     return 0;
 }
@@ -701,33 +701,33 @@ static int lmsg_set(lua_State* L){
     const char *field_name = lua_tostring(L, 2);
     google::protobuf::Message *message = message_lua->message;
     if(message == NULL){
-        LOG("message is null field is %s", field_name);
+        LOG_LOG("message is null field is %s", field_name);
         return 0;
     }
     const google::protobuf::Descriptor* descriptor = message->GetDescriptor();
     if(descriptor == NULL){
-        LOG("descriptor is null %s", message->GetTypeName().data());
+        LOG_LOG("descriptor is null %s", message->GetTypeName().data());
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("reflection is null %s", message->GetTypeName().data());
+        LOG_LOG("reflection is null %s", message->GetTypeName().data());
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = descriptor->FindFieldByName(field_name);
     if(field == NULL){
-        LOG("field is not exists %s.%s", message->GetTypeName().data(), field_name);
+        LOG_LOG("field is not exists %s.%s", message->GetTypeName().data(), field_name);
         return 0;
     }
     if(field->is_repeated()){
-        LOG("field is repeated %s.%s", message->GetTypeName().data(), field_name);
+        LOG_LOG("field is repeated %s.%s", message->GetTypeName().data(), field_name);
         return 0;
     }
     if(message_lua->root_message != NULL){
         message_lua->root_message->dirty = 1;
     }
     if(lua_isnil(L, 3) && field->label() == google::protobuf::FieldDescriptor::LABEL_REQUIRED){
-        LOG("%s is required, but nil", field->full_name().data());
+        LOG_LOG("%s is required, but nil", field->full_name().data());
         return 0;
     }
     if(lua_isnil(L, 3)){
@@ -744,7 +744,7 @@ static int lmsg_set(lua_State* L){
         }
         google::protobuf::io::ArrayInputStream stream(str, str_len);
         if(message_new->ParseFromZeroCopyStream(&stream) == 0){
-            LOG("%s.%s parse fail", message->GetTypeName().data(), field_name);
+            LOG_LOG("%s.%s parse fail", message->GetTypeName().data(), field_name);
             lua_pushboolean(L, false);
             return 1;
         }
@@ -761,13 +761,13 @@ static int lmsg_set(lua_State* L){
         }
         //pb刷新后, descriptor就对不上了
         if(message_field->GetDescriptor() != message_new->message->GetDescriptor()){
-            LOG("type is diffenert %s = %s", message_field->GetTypeName().data(), 
+            LOG_LOG("type is diffenert %s = %s", message_field->GetTypeName().data(), 
                 message_new->message->GetTypeName().data());
             return 0;
         }
        /* 
         if(strcmp(message_field->GetTypeName().data(), message_new->message->GetTypeName().data())){
-            LOG("type is diffenert %s = %s", message_field->GetTypeName().data(), 
+            LOG_LOG("type is diffenert %s = %s", message_field->GetTypeName().data(), 
                 message_new->message->GetTypeName().data());
             return 0;
         }
@@ -840,7 +840,7 @@ static int lmsg_delete(lua_State* L){
     }
     google::protobuf::Message *message = message_lua->message;
     if(message != NULL){
-        //LOG("...........delete msg %d...........", message_lua); 
+        //LOG_LOG("...........delete msg %d...........", message_lua); 
         s_msg_count--;
         s_msg_delete_times++;
         message_lua->message = NULL;
@@ -852,12 +852,12 @@ static int lmsg_delete(lua_State* L){
 static int lmsgclean(lua_State* L){
     google::protobuf::compiler::DiskSourceTree *new_sourceTree = new google::protobuf::compiler::DiskSourceTree();
     if(new_sourceTree == NULL){
-        LOG("alloc fail");
+        LOG_LOG("alloc fail");
         return 0;
     }
     google::protobuf::compiler::Importer *new_importer = new google::protobuf::compiler::Importer(new_sourceTree, errorCollector);
     if(new_importer == NULL){
-        LOG("alloc fail");
+        LOG_LOG("alloc fail");
         return 0;
     }
     sourceTree = new_sourceTree;
@@ -873,7 +873,7 @@ static int lget_descriptor(lua_State* L){
         const char *msg_name = (const char *)lua_tostring(L, 1);
         const google::protobuf::Descriptor* descriptor = pool->FindMessageTypeByName(msg_name);
         if(descriptor == NULL){
-            LOG("can not find msg %s", msg_name);
+            LOG_LOG("can not find msg %s", msg_name);
             return 0;
         }
         lua_newtable(L);
@@ -946,27 +946,27 @@ static int lmsgnew(lua_State* L){
 static int lmsg_repeated_iter(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int index = (int)lua_tonumber(L, 2) + 1;
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(index <= 0 || index > reflection->FieldSize(*message, field)){
@@ -977,12 +977,12 @@ static int lmsg_repeated_iter(lua_State *L){
         lua_pushnumber(L, index);
         LuaMessage *message_lua = (LuaMessage *)lua_newuserdata(L, sizeof(LuaMessage));
         if(message_lua == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         const google::protobuf::Message *message_new = &(reflection->GetRepeatedMessage(*message, field, index - 1));
         if(message_new == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         message_lua->message = (google::protobuf::Message *)message_new;
@@ -1023,7 +1023,7 @@ static int lmsg_repeated_iter(lua_State *L){
 static int lmsg_repeated_pairs(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     lua_pushcfunction(L, lmsg_repeated_iter);
@@ -1035,26 +1035,26 @@ static int lmsg_repeated_pairs(lua_State *L){
 static int lmsg_repeated_add(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message->root_message != NULL){
@@ -1093,12 +1093,12 @@ static int lmsg_repeated_add(lua_State *L){
     }else if(field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE){
         LuaMessage *message_lua = (LuaMessage *)lua_newuserdata(L, sizeof(LuaMessage));
         if(message_lua == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         google::protobuf::Message *message_new = reflection->AddMessage(message, field);
         if(message_new == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         message_lua->message = message_new;
@@ -1108,7 +1108,7 @@ static int lmsg_repeated_add(lua_State *L){
         lua_setmetatable(L, -2);
         return 1;
     }else{
-        LOG("add fail file type :%d", field->cpp_type());
+        LOG_LOG("add fail file type :%d", field->cpp_type());
         return 0;
     }
 }
@@ -1120,27 +1120,27 @@ static int lmsg_repeated_add(lua_State *L){
 static int lmsg_repeated_set(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int index = (int)lua_tonumber(L, 2) - 1;
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(index < 0 || index >= reflection->FieldSize(*message, field)){
@@ -1180,7 +1180,7 @@ static int lmsg_repeated_set(lua_State *L){
         lua_pushnumber(L, 1);
         return 1;
     }else{
-        LOG("fail  %s", field->full_name().data());
+        LOG_LOG("fail  %s", field->full_name().data());
     }
     return 0;
 }
@@ -1193,27 +1193,27 @@ static int lmsg_repeated_set(lua_State *L){
 static int lmsg_repeated_get(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int index = (int)lua_tonumber(L, 2) - 1;
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("field null");
+        LOG_LOG("field null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(index < 0 || index >= reflection->FieldSize(*message, field)){
@@ -1223,12 +1223,12 @@ static int lmsg_repeated_get(lua_State *L){
     if(field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE){
         LuaMessage *message_lua = (LuaMessage *)lua_newuserdata(L, sizeof(LuaMessage));
         if(message_lua == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         const google::protobuf::Message *message_new = &(reflection->GetRepeatedMessage(*message, field, index));
         if(message_new == NULL){
-            LOG("null");
+            LOG_LOG("null");
             return 0;
         }
         message_lua->message = (google::protobuf::Message *)message_new;
@@ -1268,26 +1268,26 @@ static int lmsg_repeated_get(lua_State *L){
 static int lmsg_repeated_count(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int count = reflection->FieldSize(*message, field);
@@ -1298,26 +1298,26 @@ static int lmsg_repeated_count(lua_State *L){
 static int lmsg_repeated_remove_last(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
 
@@ -1339,26 +1339,26 @@ static int lmsg_repeated_remove_last(lua_State *L){
 static int lmsg_repeated_remove_at(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int index = (int)lua_tonumber(L, 2) - 1;
@@ -1388,26 +1388,26 @@ static int lmsg_repeated_remove_at(lua_State *L){
 static int lmsg_repeated_remove(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     int index = (int)lua_tonumber(L, 2) - 1;
@@ -1426,26 +1426,26 @@ static int lmsg_repeated_remove(lua_State *L){
 static int lmsg_repeated_clear(lua_State *L){
     RepeatedField *repeated_field = (RepeatedField *)luaL_checkudata(L, 1, "RepeatedField");
     if(repeated_field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     google::protobuf::Message *message = repeated_field->message->message;
     if(message == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::FieldDescriptor *field = repeated_field->field;
     if(field == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     const google::protobuf::Reflection* reflection = message->GetReflection();
     if(reflection == NULL){
-        LOG("null");
+        LOG_LOG("null");
         return 0;
     }
     if(repeated_field->message->root_message != NULL){

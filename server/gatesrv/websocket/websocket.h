@@ -12,7 +12,7 @@ namespace Websocket
     int listen(const char* host, unsigned short port);
 
     int send_string_frame(int sid, const char* str);
-    int send_frame(int sid, const void* data, unsigned short datalen);
+    int send_binary_frame(int sid, const void* data, unsigned short datalen);
 
 };
 //tolua_end

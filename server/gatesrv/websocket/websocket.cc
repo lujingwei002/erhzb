@@ -67,7 +67,7 @@ namespace Websocket
         Session* session = session_get(sockfd);
         if (!session)
         {
-            LOG("session not found\n");
+            LOG_DEBUG("session not found\n");
             return;
         }
         session->sockfd = sockfd;
@@ -84,7 +84,7 @@ namespace Websocket
         Recvbuf::free(sockfd);
         close(sockfd);
         session_close(sockfd);
-        LOG("sockfd(%d) real close %s\n", sockfd, reason);
+        LOG_LOG("sockfd(%d) real close %s\n", sockfd, reason);
     }
 
     static int _find_string(const char* text, size_t textlen, int start, const char* str, size_t len)
@@ -101,20 +101,20 @@ namespace Websocket
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_writable\n");
+        LOG_DEBUG("ev_writable\n");
         //发送数据
         for(;;)
         {
             int datalen = Sendbuf::datalen(sockfd);
             if (datalen <= 0)
             {
-                LOG("delete write event\n");
+                LOG_DEBUG("delete write event\n");
                 aeDeleteFileEvent(Net::loop, sockfd, AE_WRITABLE);
                 break;
             }
             char* buf = Sendbuf::get_read_ptr(sockfd);
             int ir = ::send(sockfd, buf, datalen, 0);
-            LOG("real send %d\n", ir);
+            LOG_DEBUG("real send %d\n", ir);
             if (ir > 0) 
             {
                 Sendbuf::skip_read_ptr(sockfd, ir);
@@ -132,7 +132,7 @@ namespace Websocket
 
     int dispatch_frame(Session* session, const char* data, size_t datalen)
     {
-        printf("recv a frame:%s\n", data);
+        LOG_DEBUG("recv a frame:%s\n", data);
         //分发到lua处理
         //send_string_frame(sockfd, "hello");
         static char funcname[64] = "Websocket.dispatch";
@@ -144,7 +144,7 @@ namespace Websocket
         {
             if (lua_isstring(Script::L, -1))
             {
-                LOG("Websocket.dispatch error %s\n", lua_tostring(Script::L, -1));
+                LOG_DEBUG("Websocket.dispatch error %s\n", lua_tostring(Script::L, -1));
             }
             Script::printluastack();
         }
@@ -220,8 +220,8 @@ namespace Websocket
             return 0;
         }
         FrameHeader* frame_header = (FrameHeader*)data;
-        LOG("fin(%d) rsv(%d) mask(%d) opcode(%d) payload_len(%d)\n", frame_header->fin, frame_header->rsv, frame_header->mask, frame_header->opcode, frame_header->payload_len);
-        LOG("c1 %d c2 %d\n", *(unsigned char *)data, *(unsigned char *)(data + 1));
+        LOG_DEBUG("fin(%d) rsv(%d) mask(%d) opcode(%d) payload_len(%d)\n", frame_header->fin, frame_header->rsv, frame_header->mask, frame_header->opcode, frame_header->payload_len);
+        LOG_DEBUG("c1 %d c2 %d\n", *(unsigned char *)data, *(unsigned char *)(data + 1));
         //接下来开始计算真实的长度
         unsigned long long framelen = 2;
         unsigned long long real_payload_len = frame_header->payload_len;
@@ -272,14 +272,14 @@ namespace Websocket
         {
             return 0;
         }
-        LOG("real_payload_len(%lld)\n", real_payload_len);
+        LOG_DEBUG("real_payload_len(%lld)\n", real_payload_len);
         //用掩码修改数据
         for (unsigned long long i = 0; i < real_payload_len; i++)
         {
             payload_data[i] = payload_data[i] ^ mask[i % 4];
         }
-        //LOG("%s\n", data);
-        //LOG("payload %s\n", payload_data);
+        //LOG_DEBUG("%s\n", data);
+        //LOG_DEBUG("payload %s\n", payload_data);
         //是否最后一帧了
         return frame_header->fin;
     }
@@ -289,13 +289,13 @@ namespace Websocket
         Session* session = session_get(sockfd);
         if (!session)
         {
-            LOG("session is nil\n");
+            LOG_DEBUG("session is nil\n");
             return 0;
         }
         //握手
         if (session->had_shake == 0)
         {
-            printf("%s\n", data);
+            LOG_DEBUG("%s\n", data);
             SHA1_CTX context; 
             SHA1Init(&context); 
             static unsigned char digest[20];
@@ -318,10 +318,10 @@ namespace Websocket
             SHA1Update(&context, key, strlen((char *)key)); 
             SHA1Final(digest, &context); 
 
-            printf("%d %d %d\n", rnrn, key_start, key_end);
-            //printf("Sec-WebSocket-Key: %s Key Len(%d)\n", key, strlen((char*)key));
-            printf("Sec-WebSocket-Key: %s\n", key);
-            //printf("Sha1: %s\n", digest);
+            LOG_DEBUG("%d %d %d\n", rnrn, key_start, key_end);
+            //LOG_DEBUG("Sec-WebSocket-Key: %s Key Len(%d)\n", key, strlen((char*)key));
+            LOG_DEBUG("Sec-WebSocket-Key: %s\n", key);
+            //LOG_DEBUG("Sha1: %s\n", digest);
             static char sec_websocket_accept[128];
             base64_encode(digest, sizeof(digest), sec_websocket_accept);
 
@@ -331,7 +331,7 @@ namespace Websocket
             static char outtime[128];
             strftime(outtime, sizeof(outtime), "Date:%a, %d %b %Y %H:%M:%S GMT\r\n", tmp);
             //printf("sfasfasfffffffffffffffffffffffffff %s\n", outtime);
-            printf("Sec-WebSocket-Accept: %s\n", sec_websocket_accept);
+            LOG_DEBUG("Sec-WebSocket-Accept: %s\n", sec_websocket_accept);
             send(sockfd, "HTTP/1.1 101 Switching Protocols\r\n"
                          "Connection:Upgrade\r\n"
                          "Server:lujingwei002@qq.com\r\n"
@@ -347,7 +347,7 @@ namespace Websocket
             return rnrn + 4; 
         } else 
         {
-            LOG("recv a frame\n");
+            LOG_DEBUG("recv a frame\n");
             if(decode_one_frame(sockfd, data, datalen) == 0)
             {
                 return 0;
@@ -360,14 +360,14 @@ namespace Websocket
 
     static void _ev_readable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_readable\n");
+        LOG_DEBUG("ev_readable\n");
         //接收数据
         for(;;)
         {
             char* wptr= Recvbuf::getwptr(sockfd);
             int buflen = Recvbuf::bufremain(sockfd);
             int ir = ::recv(sockfd, wptr, buflen, 0);
-            LOG("sockfd(%d) real recv %d\n", sockfd, ir);
+            LOG_DEBUG("sockfd(%d) real recv %d\n", sockfd, ir);
             if (ir == 0 || (ir == -1 && errno != EAGAIN))
             {
                 real_close(sockfd, "peer close");
@@ -408,7 +408,7 @@ namespace Websocket
         {
             return;
         }
-        LOG("accept a new socket\n");
+        LOG_LOG("accept a new socket sockfd(%d)\n", sockfd);
         session_init(sockfd);
         Sendbuf::create(sockfd);
         Recvbuf::create(sockfd, 1024);
@@ -417,12 +417,12 @@ namespace Websocket
 
 
     //发送帧
-    int send_frame(int sid, const void* data, unsigned short datalen)
+    int send_frame(int sid, int opcode, const void* data, unsigned short datalen)
     {
         Session* session = session_find(sid);
         if(!session)
         {
-            LOG("websocket session not found\n");
+            LOG_DEBUG("websocket session not found\n");
             return 0;
         }
         int sockfd = session->sockfd;
@@ -430,7 +430,7 @@ namespace Websocket
         FrameHeader header;
         header.fin = 1;//结束帧
         header.rsv = 0;
-        header.opcode = 1;
+        header.opcode = opcode;
         header.mask = 0;//没有掩码
         header.payload_len = 126;
         
@@ -441,11 +441,16 @@ namespace Websocket
         _real_send(sockfd, data, datalen);
         return 0;
     }
+    
+    int send_binary_frame(int sid, const void* data, unsigned short datalen)
+    {
+        return send_frame(sid, 2, data, datalen);
+    }
 
     //发送字符串帧
     int send_string_frame(int sid, const char* str)
     {
-        return send_frame(sid, str, strlen(str) + 1);
+        return send_frame(sid, 1, str, strlen(str) + 1);
     }
 
    
@@ -458,7 +463,7 @@ namespace Websocket
         {
             return 0;
         }
-        LOG("send %ld to sockfd(%d)\n", datalen, sockfd);
+        LOG_DEBUG("send %ld to sockfd(%d)\n", datalen, sockfd);
         memcpy(buf, data, datalen);
         Sendbuf::flush(sockfd, buf, datalen);
         aeCreateFileEvent(Net::loop, sockfd, AE_WRITABLE, _ev_writable, NULL);
@@ -476,14 +481,14 @@ namespace Websocket
     {
         if (listenfd != -1)
         {
-            LOG("socket error\n");
+            LOG_DEBUG("socket error\n");
             return 1;
         }
         int error;
         int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
-            LOG("socket error\n");
+            LOG_DEBUG("socket error\n");
             return 1;
         }
         error = fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFD, 0) | O_NONBLOCK);
@@ -511,7 +516,7 @@ namespace Websocket
         }
         listenfd = sockfd;
         aeCreateFileEvent(Net::loop, sockfd, AE_READABLE | AE_WRITABLE, _ev_accept, NULL);
-        LOG("websocket listen success\n");
+        LOG_DEBUG("websocket listen success\n");
         return 0;
     }
 };

@@ -12,7 +12,7 @@ static int lconnect(lua_State *L){
         mysql_options(conn, MYSQL_OPT_RECONNECT, &b);
         conn = mysql_real_connect(conn, host, user, passwd, dbname, 0, NULL, MYSQL_OPT_RECONNECT);
         if(conn == NULL){
-            LOG("connect fail %s\n", mysql_error(conn));
+            LOG_LOG("connect fail %s\n", mysql_error(conn));
             return 0;
         }
         mysql_query(conn, "set names utf8");
@@ -27,14 +27,14 @@ static int lcommand(lua_State *L){
     if(lua_gettop(L) == 2 && lua_isstring(L, 2)){
         MYSQL *conn = (MYSQL *)lua_touserdata(L, 1);
         if(conn == NULL){
-            LOG("checkuserdata fail");
+            LOG_LOG("checkuserdata fail");
             lua_pushboolean(L, 0);
             return 1;
         }
         mysql_query(conn, "set names utf8");
         const char *command = lua_tostring(L, 2);
         if(mysql_query(conn, command) != 0){
-            LOG("%s\n", mysql_error(conn));
+            LOG_LOG("%s\n", mysql_error(conn));
             lua_pushboolean(L, 0);
             lua_pushstring(L, mysql_error(conn));
             return 2;
@@ -65,7 +65,7 @@ static int lselect(lua_State *L){
         int index = 1;
         MYSQL *conn = (MYSQL *)lua_touserdata(L, 1);
         if(conn == NULL){
-            LOG("disconnect");
+            LOG_LOG("disconnect");
             return 0;
         }
         const char *command = lua_tostring(L, 2);
@@ -73,7 +73,7 @@ static int lselect(lua_State *L){
         mysql_query(conn, command);
         result = mysql_store_result(conn);
         if(result == NULL){
-            LOG("select fail %d %s command %s", mysql_errno(conn), mysql_error(conn), command);
+            LOG_LOG("select fail %d %s command %s", mysql_errno(conn), mysql_error(conn), command);
             return 0;
         }
         lua_newtable(L);
@@ -82,7 +82,7 @@ static int lselect(lua_State *L){
             fields = mysql_fetch_fields(result);
             if(fields == NULL){
                 mysql_free_result(result);
-                LOG("select fail fetch_fields command:%s", command);
+                LOG_LOG("select fail fetch_fields command:%s", command);
                 break;
             }
             while ((row = mysql_fetch_row(result))){
@@ -135,7 +135,7 @@ static int lrealescapestring(lua_State *L){
     if(lua_gettop(L) == 2){
         MYSQL *conn = (MYSQL *)lua_touserdata(L, 1);
         if(conn == NULL){
-            LOG("disconnect");
+            LOG_LOG("disconnect");
             return 0;
         }
         size_t str_len;
@@ -151,7 +151,7 @@ static int lrealescapestring(lua_State *L){
             }
             escape_buf = (char *)malloc(str_len * 2);
             if(escape_buf == NULL){
-                LOG("malloc fail");
+                LOG_LOG("malloc fail");
                 return 0;
             }
             escape_buf_len = str_len * 2;
@@ -168,7 +168,7 @@ static int lclose(lua_State *L){
     if(lua_gettop(L) == 1){
         MYSQL *conn = (MYSQL *)lua_touserdata(L, 1);
         if(!conn){
-            LOG("disconnect");
+            LOG_LOG("disconnect");
             return 0;
         }
         mysql_close(conn);

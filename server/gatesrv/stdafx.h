@@ -25,3 +25,4 @@
 #include "gameclient/gameclient.h"
 #include "encrypt/sha1.h"
 #include "encrypt/base64.h"
+#include "daemon/daemon.h"

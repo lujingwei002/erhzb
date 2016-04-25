@@ -29,7 +29,7 @@ namespace Script
         {
             if (lua_isstring(L, -1))
             {
-                LOG("dofile error %s\n", lua_tostring(L, -1));
+                LOG_LOG("dofile error %s\n", lua_tostring(L, -1));
                 return 1;
             }
         }

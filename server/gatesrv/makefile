@@ -1,4 +1,4 @@
-INCLUDE_DIRS =-I. -I../rd/protobuf/src -I../3rd/lua/src -I../3rd/mysql/include -I../3rd/hiredis -I../3rd/tolua++
+INCLUDE_DIRS =-I. -I../rd/protobuf/src -I../3rd/lua/src -I../3rd/mysql/include -I../3rd/hiredis -I../3rd/tolua++ -I../srvlib
 
 LIB_DIRS =
 
@@ -8,12 +8,15 @@ DY_LIBS = -lm -ldl -lreadline -lhistory -lncurses -lpthread
 CFLAGS=-O2 -Wall
 
 SOURCE = $(wildcard \
-		 net/*.cc\
 		 websocket/*.cc\
 		 log/*.cc\
 		 script/*.cc\
 		 encrypt/*.cc\
 		 gameclient/*.cc\
+		 ../srvlib/log/*.cc\
+		 ../srvlib/net/*.cc\
+		 ../srvlib/encrypt/*.cc\
+		 ../srvlib/daemon/*.cc\
 		 main.cc\
 		 interface.cc\
 		 ) 

@@ -5,6 +5,7 @@ namespace Gameclient
 {
     int init();
     int connect(const char* host, unsigned short port);
+    bool is_connect();
     /*
      * sid:会话id
      * data:数据

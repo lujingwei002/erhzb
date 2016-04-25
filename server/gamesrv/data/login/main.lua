@@ -9,3 +9,8 @@ function GET(uid, data)
     print(actordata:debug_string())
     Dbclient.post('Login.SET', uid, actordata:tostring())
 end
+
+
+function LOGIN(sid, msg)
+    print('i am login')
+end

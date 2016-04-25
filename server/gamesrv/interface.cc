@@ -1,6 +1,6 @@
 /*
 ** Lua binding: gamesrv
-** Generated automatically by tolua++-1.0.92 on Sun Apr 24 18:24:37 2016.
+** Generated automatically by tolua++-1.0.92 on Mon Apr 25 16:29:00 2016.
 */
 
 #ifndef __cplusplus

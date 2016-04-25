@@ -3,7 +3,7 @@
 
 int server_init(int argc, char **argv)
 {
-    LOG("server_init\n");
+    LOG_LOG("server_init\n");
     Net::init();
     Gamesrv::init();
     Script::init();
@@ -13,14 +13,14 @@ int server_init(int argc, char **argv)
 
 int server_loop()
 {
-    LOG("server_loop\n");
+    LOG_LOG("server_loop\n");
     Net::run();
     return 0;
 }
 
 int server_exit()
 {
-    LOG("server_exit\n");
+    LOG_LOG("server_exit\n");
     return 0;
 }
 

@@ -18,25 +18,25 @@ namespace Gatesrv
         Sendbuf::free(sockfd);
         Recvbuf::free(sockfd);
         close(sockfd);
-        LOG("sockfd(%d) real close %s\n", sockfd, reason);
+        LOG_DEBUG("sockfd(%d) real close %s\n", sockfd, reason);
     }
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_writable\n");
+        LOG_DEBUG("ev_writable\n");
         //发送数据
         for(;;)
         {
             int datalen = Sendbuf::datalen(sockfd);
             if (datalen <= 0)
             {
-                LOG("delete write event\n");
+                LOG_DEBUG("delete write event\n");
                 aeDeleteFileEvent(Net::loop, sockfd, AE_WRITABLE);
                 break;
             }
             char* buf = Sendbuf::get_read_ptr(sockfd);
             int ir = ::send(sockfd, buf, datalen, 0);
-            LOG("real send %d\n", ir);
+            LOG_DEBUG("real send %d\n", ir);
             if (ir > 0) 
             {
                 Sendbuf::skip_read_ptr(sockfd, ir);
@@ -50,6 +50,26 @@ namespace Gatesrv
             }
         }
 
+    }
+    int push_luamsgname(char *msgname, unsigned short msgnamelen)
+    {
+        int s = 0;
+        char* ptr = msgname;
+        for (int i = 0; i < msgnamelen; i++)
+        {
+            if (msgname[i] == '.')
+            {
+                //改成大写
+                ptr[0] = ptr[0] - 32;
+                lua_pushlstring(Script::L, ptr, i - s);
+                ptr[0] = ptr[0] + 32;
+                s = i + 1;
+                ptr = (msgname + i + 1);
+                break;
+            }
+        }
+        lua_pushlstring(Script::L, ptr, msgnamelen - s);
+        return 0;
     }
 
     int dispatch_frame(int sockfd, const char* data, unsigned short datalen)
@@ -87,12 +107,13 @@ namespace Gatesrv
             Script::pushluafunction(funcname);
             lua_pushnumber(Script::L, sid);
             lua_pushlstring(Script::L, msgname, msgnamelen);
+            push_luamsgname(msgname, msgnamelen);
             lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
-            if (lua_pcall(Script::L, 3, 0, 0) != 0)
+            if (lua_pcall(Script::L, 5, 0, 0) != 0)
             {
                 if (lua_isstring(Script::L, -1))
                 {
-                    LOG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                    LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
                 }
             }
         }
@@ -117,14 +138,14 @@ namespace Gatesrv
 
     static void _ev_readable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_readable\n");
+        LOG_DEBUG("ev_readable\n");
         //接收数据
         for(;;)
         {
             char* wptr= Recvbuf::getwptr(sockfd);
             int buflen = Recvbuf::bufremain(sockfd);
             int ir = ::recv(sockfd, wptr, buflen, 0);
-            LOG("sockfd(%d) real recv %d\n", sockfd, ir);
+            LOG_DEBUG("sockfd(%d) real recv %d\n", sockfd, ir);
             if (ir == 0 || (ir == -1 && errno != EAGAIN))
             {
                 real_close(sockfd, "peer close");
@@ -165,7 +186,7 @@ namespace Gatesrv
         {
             return;
         }
-        LOG("accept a new socket\n");
+        LOG_DEBUG("gatesrv accept a new socket sockfd(%d)\n", sockfd);
         Sendbuf::create(sockfd);
         Recvbuf::create(sockfd, 10240);
         aeCreateFileEvent(Net::loop, sockfd, AE_READABLE, _ev_readable, NULL);
@@ -178,7 +199,7 @@ namespace Gatesrv
     {
         if (sockfd_ == -1)
         {
-            LOG("gatesrv not accept\n");
+            LOG_DEBUG("gatesrv not accept\n");
             return 0;
         }
         int plen = sizeof(datalen) + sizeof(sid) + datalen;
@@ -188,7 +209,7 @@ namespace Gatesrv
         {
             return 0;
         }
-        LOG("gatesrv send %d to sockfd(%d)\n", plen, sockfd_);
+        LOG_DEBUG("gatesrv send %d to sockfd(%d)\n", plen, sockfd_);
         *(unsigned short*)buf = plen;
         *(unsigned int*)(buf + 2) = sid;
         memcpy(buf + sizeof(datalen) + sizeof(sid), data, datalen);
@@ -201,14 +222,14 @@ namespace Gatesrv
     {
         if (listenfd != -1)
         {
-            LOG("socket error\n");
+            LOG_DEBUG("socket error\n");
             return 1;
         }
         int error;
         int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
         if (sockfd == -1)
         {
-            LOG("socket error\n");
+            LOG_DEBUG("socket error\n");
             return 1;
         }
         error = fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFD, 0) | O_NONBLOCK);
@@ -236,7 +257,7 @@ namespace Gatesrv
         }
         listenfd = sockfd;
         aeCreateFileEvent(Net::loop, sockfd, AE_READABLE | AE_WRITABLE, _ev_accept, NULL);
-        LOG("gatesrv listen success\n");
+        LOG_DEBUG("gatesrv listen success\n");
         return 0;
     }
 

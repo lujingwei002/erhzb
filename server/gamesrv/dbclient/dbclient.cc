@@ -23,25 +23,25 @@ namespace Dbclient
         close(sockfd);
         sockfd_ = -1;
         is_connect_ = false;
-        LOG("dbclient sockfd(%d) real close %s\n", sockfd, reason);
+        LOG_LOG("dbclient sockfd(%d) real close %s\n", sockfd, reason);
     }
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_writable\n");
+        LOG_LOG("ev_writable\n");
         //发送数据
         for(;;)
         {
             int datalen = Sendbuf::datalen(sockfd);
             if (datalen <= 0)
             {
-                LOG("delete write event\n");
+                LOG_LOG("delete write event\n");
                 aeDeleteFileEvent(Net::loop, sockfd, AE_WRITABLE);
                 break;
             }
             char* buf = Sendbuf::get_read_ptr(sockfd);
             int ir = ::send(sockfd, buf, datalen, 0);
-            LOG("real send %d\n", ir);
+            LOG_LOG("real send %d\n", ir);
             if (ir > 0) 
             {
                 Sendbuf::skip_read_ptr(sockfd, ir);
@@ -103,7 +103,7 @@ namespace Dbclient
         {
             if (lua_isstring(Script::L, -1))
             {
-                LOG("gamesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                LOG_LOG("gamesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
             }
         }
         lua_pop(Script::L, lua_gettop(Script::L));
@@ -129,14 +129,14 @@ namespace Dbclient
 
     static void _ev_readable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG("ev_readable\n");
+        LOG_LOG("ev_readable\n");
         //接收数据
         for(;;)
         {
             char* wptr= Recvbuf::getwptr(sockfd);
             int buflen = Recvbuf::bufremain(sockfd);
             int ir = ::recv(sockfd, wptr, buflen, 0);
-            LOG("sockfd(%d) real recv %d\n", sockfd, ir);
+            LOG_LOG("sockfd(%d) real recv %d\n", sockfd, ir);
             if (ir == 0 || (ir == -1 && errno != EAGAIN))
             {
                 real_close(sockfd, "peer close");
@@ -169,7 +169,7 @@ namespace Dbclient
         {
             return 0;
         }
-        LOG("send %d to sockfd(%d)\n", datalen, sockfd);
+        LOG_LOG("send %d to sockfd(%d)\n", datalen, sockfd);
         *(unsigned short*)buf = datalen + sizeof(unsigned short);
         memcpy(buf + sizeof(unsigned short), data, datalen);
         Sendbuf::flush(sockfd, buf, datalen + sizeof(unsigned short));
@@ -223,7 +223,7 @@ namespace Dbclient
         {
             return 0;
         }
-        LOG("dbclient send %d to sockfd(%d)\n", plen, sockfd_);
+        LOG_LOG("dbclient send %d to sockfd(%d)\n", plen, sockfd_);
 
         //写包长
         *(unsigned short*)buf = plen;
@@ -288,13 +288,13 @@ namespace Dbclient
             sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
             if (sockfd < 0)
             {
-                LOG("connect socket error\n");
+                LOG_LOG("connect socket error\n");
                 return 1;
             }
             error = ::fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFD, 0) | O_NONBLOCK);
             if (error < 0)
             {
-                LOG("connect fcntl error\n");
+                LOG_LOG("connect fcntl error\n");
                 ::close(sockfd);
                 return 1;
             }
@@ -322,7 +322,7 @@ namespace Dbclient
             error = ::connect(sockfd_, (struct sockaddr *)&addr, sizeof(addr));
             if ((error == 0) || (error < 0 && errno == EISCONN))
             {
-                LOG("dbclient reconnect success\n");
+                LOG_LOG("dbclient reconnect success\n");
                 is_connect_ = true;
                 Sendbuf::create(sockfd_);
                 Recvbuf::create(sockfd_, 1024);
