@@ -1,7 +1,23 @@
+
+
+create  table  if not exists  account
+(
+       uid int comment '角色ID' auto_increment,
+       openid varchar(64) comment '平台id',
+       sig varchar(128) comment '签名',
+       time int comment '登录时间戳',
+       primary key(uid)
+)
+ENGINE = MYISAM;
+
+alter table account comment '账号表';
+
+
 create  table  if not exists  actor
 (
-       uid int comment '角色ID' primary key,
-       data mediumblob default NULL COMMENT '角色数据'
+       uid int comment '角色ID',
+       data mediumblob default NULL COMMENT '角色数据',
+       primary key(uid)
 )
 ENGINE = MYISAM;
 

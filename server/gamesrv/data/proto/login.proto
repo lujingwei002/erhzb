@@ -2,9 +2,26 @@ package login;
 
 
 //登录协议
+//secret 为 lol_client
+//签名算法法为 sig = md5(openid + time.tostring() + secret)
 message LOGIN
 {
-    optional int32 uid = 1[default = 0];
+    //微信平台开放id
+    optional string openid = 1[default = ''];
+    //时间戳
+    optional int32 time = 2[default = 0];
+    //签名
+    optional string sig = 3[default = ''];
+}
+
+
+//登录回复
+message LOGIN_R 
+{
+    //0。成功  1.微信登录不成功  2.签名不正确 3.time超时
+    optional int32 errno = 1[default = 0];
+    //返回的用户id
+    optional int32 uid = 2[default = 0];
 }
 
 

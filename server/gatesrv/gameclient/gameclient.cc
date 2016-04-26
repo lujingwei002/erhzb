@@ -66,7 +66,7 @@ namespace Gameclient
         char* body = (char*)data + sizeof(unsigned int);
         unsigned short bodylen = datalen - sizeof(unsigned int);
 
-        printf("gameclient recv a frame sid %d data %s\n", sid, body);
+        LOG_DEBUG("gameclient recv a frame sid %d data %s\n", sid, body);
         //分发到lua处理
         static char funcname[64] = "Gameclient.dispatch";
         Script::pushluafunction(funcname);
@@ -75,7 +75,10 @@ namespace Gameclient
         lua_pushnumber(Script::L, bodylen);
         if (lua_pcall(Script::L, 3, 0, 0) != 0)
         {
-            Script::printluastack();
+            if (lua_isstring(Script::L, -1))
+            {
+                LOG_DEBUG("Gameclient.dispatch error %s\n", lua_tostring(Script::L, -1));
+            }
         }
         return 0;
     }
@@ -130,24 +133,100 @@ namespace Gameclient
     }
 
 
-    int send(int sid, const void* data, unsigned short datalen)
+    //打开会话
+    int send_session_open(int sid)
     {
         if (!is_connect_)
         {
             LOG_LOG("gameclient is not connect\n");
             return 0;
         }
-        int plen = sizeof(unsigned short) + sizeof(sid) + datalen;
+        unsigned char cmd = 2;
+        int plen = sizeof(unsigned short) + sizeof(cmd) + sizeof(sid);
         //插入到缓冲区
         char* buf = Sendbuf::alloc(sockfd_, plen);
         if (!buf)
         {
             return 0;
         }
-        LOG_LOG("gameclient send %d to sockfd(%d)\n", plen, sockfd_);
+        LOG_LOG("gameclient send session open plen(%d) to sid(%d) sockfd(%d)\n", plen, sid, sockfd_);
+
         *(unsigned short*)buf = plen;
-        *(unsigned int*)(buf + 2) = sid;
-        memcpy(buf + sizeof(datalen) + sizeof(sid), data, datalen);
+        buf += 2;
+
+        *(unsigned char*)buf = cmd;
+        buf += 1;
+
+        *(unsigned int*)buf = sid;
+        buf += 4;
+
+        Sendbuf::flush(sockfd_, buf, plen);
+        aeCreateFileEvent(Net::loop, sockfd_, AE_WRITABLE, _ev_writable, NULL);
+        return plen;
+    }
+
+    //关闭会话
+    int send_session_close(int sid)
+    {
+        if (!is_connect_)
+        {
+            LOG_LOG("gameclient is not connect\n");
+            return 0;
+        }
+        unsigned char cmd = 3;
+        int plen = sizeof(unsigned short) + sizeof(cmd) + sizeof(sid);
+        //插入到缓冲区
+        char* buf = Sendbuf::alloc(sockfd_, plen);
+        if (!buf)
+        {
+            return 0;
+        }
+        LOG_LOG("gameclient send session close plen(%d) to sid(%d) sockfd(%d)\n", plen, sid, sockfd_);
+
+        *(unsigned short*)buf = plen;
+        buf += 2;
+
+        *(unsigned char*)buf = cmd;
+        buf += 1;
+
+        *(unsigned int*)buf = sid;
+        buf += 4;
+
+        Sendbuf::flush(sockfd_, buf, plen);
+        aeCreateFileEvent(Net::loop, sockfd_, AE_WRITABLE, _ev_writable, NULL);
+        return plen;
+
+    }
+    
+    int send_data(int sid, const void* data, unsigned short datalen)
+    {
+        if (!is_connect_)
+        {
+            LOG_LOG("gameclient is not connect\n");
+            return 0;
+        }
+        unsigned char cmd = 1;
+        int plen = sizeof(unsigned short) + sizeof(cmd) + sizeof(sid) + datalen;
+        //插入到缓冲区
+        char* buf = Sendbuf::alloc(sockfd_, plen);
+        if (!buf)
+        {
+            return 0;
+        }
+        LOG_LOG("gameclient send data %d to sockfd(%d)\n", plen, sockfd_);
+
+        *(unsigned short*)buf = plen;
+        buf += 2;
+
+        *(unsigned char*)buf = cmd;
+        buf += 1;
+
+        *(unsigned int*)buf = sid;
+        buf += 4;
+
+        memcpy(buf, data, datalen);
+        buf += datalen;
+
         Sendbuf::flush(sockfd_, buf, plen);
         aeCreateFileEvent(Net::loop, sockfd_, AE_WRITABLE, _ev_writable, NULL);
         return plen;
@@ -217,7 +296,7 @@ namespace Gameclient
                 aeCreateFileEvent(Net::loop, sockfd_, AE_READABLE, _ev_readable, NULL);
             } else
             {
-//                printf("gameclient reconnect error(%d) errno(%d)\n", error, errno);
+//                LOG_DEBUG("gameclient reconnect error(%d) errno(%d)\n", error, errno);
             }
         }
         return 0;

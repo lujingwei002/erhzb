@@ -75,45 +75,102 @@ namespace Gatesrv
     int dispatch_frame(int sockfd, const char* data, unsigned short datalen)
     {
         char *dataptr = (char*)data;
+
+        int cmd = *(unsigned char*)dataptr;
+        dataptr += 1;
+        datalen -= 1;
+
         int sid = *(unsigned int *)dataptr;
         dataptr += 4;
         datalen -= 4;
 
-        char *msgname = dataptr;
-        unsigned short msgnamelen = 0;
-
-        for (int i = 0; i < datalen; i++)
+        if (cmd == 2)
         {
-            if (*(dataptr +i) == '*' || *(dataptr +i) == 0)
-            {
-                msgnamelen = i;
-                dataptr += msgnamelen;
-                datalen -= msgnamelen;
-                break;
-            }
-        }
-        if (msgnamelen == 0)
-        {
-            return 0;
-        }
-
-
-        printf("gatesrv recv a frame sid %d msgnamelen %d\n", sid, msgnamelen);
-
-        if (*dataptr == '*')
-        {
+            //打开会话
+            LOG_LOG("gatesrv recv a session open sid(%d)", sid);
             //分发到lua处理
-            static char funcname[64] = "Gatesrv.dispatch_json";
+            static char funcname[64] = "Gatesrv.on_session_open";
             Script::pushluafunction(funcname);
             lua_pushnumber(Script::L, sid);
-            lua_pushlstring(Script::L, msgname, msgnamelen);
-            push_luamsgname(msgname, msgnamelen);
-            lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
-            if (lua_pcall(Script::L, 5, 0, 0) != 0)
+            if (lua_pcall(Script::L, 1, 0, 0) != 0)
             {
                 if (lua_isstring(Script::L, -1))
                 {
-                    LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                    LOG_DEBUG("gatesrv.on_session_open error %s\n", lua_tostring(Script::L, -1));
+                }
+            }
+        }
+        else if (cmd == 3)
+        {
+            //关闭会话
+            LOG_LOG("gatesrv recv a session close sid(%d)", sid);
+            //分发到lua处理
+            static char funcname[64] = "Gatesrv.on_session_close";
+            Script::pushluafunction(funcname);
+            lua_pushnumber(Script::L, sid);
+            if (lua_pcall(Script::L, 1, 0, 0) != 0)
+            {
+                if (lua_isstring(Script::L, -1))
+                {
+                    LOG_DEBUG("gatesrv.on_session_open error %s\n", lua_tostring(Script::L, -1));
+                }
+            }
+        }
+        else if (cmd == 1)
+        {
+            //数据帧
+            char *msgname = dataptr;
+            unsigned short msgnamelen = 0;
+
+            LOG_DEBUG("gatesrv recv a frame sid %d\n", sid);
+
+            for (int i = 0; i < datalen; i++)
+            {
+                if (*(dataptr +i) == '*' || *(dataptr +i) == 0)
+                {
+                    msgnamelen = i;
+                    dataptr += msgnamelen;
+                    datalen -= msgnamelen;
+                    break;
+                }
+            }
+            if (msgnamelen == 0)
+            {
+                return 0;
+            }
+
+
+            if (*dataptr == '*')
+            {
+                //分发到lua处理
+                static char funcname[64] = "Gatesrv.dispatch_json";
+                Script::pushluafunction(funcname);
+                lua_pushnumber(Script::L, sid);
+                lua_pushlstring(Script::L, msgname, msgnamelen);
+                push_luamsgname(msgname, msgnamelen);
+                lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
+                if (lua_pcall(Script::L, 5, 0, 0) != 0)
+                {
+                    if (lua_isstring(Script::L, -1))
+                    {
+                        LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                    }
+                }
+            } else 
+            {
+                //分发到lua处理
+                static char funcname[64] = "Gatesrv.dispatch_proto";
+                Script::pushluafunction(funcname);
+                lua_pushnumber(Script::L, sid);
+                lua_pushlstring(Script::L, msgname, msgnamelen);
+                push_luamsgname(msgname, msgnamelen);
+                lua_pushlstring(Script::L, dataptr + 1, datalen - 1);
+                if (lua_pcall(Script::L, 5, 0, 0) != 0)
+                {
+                    if (lua_isstring(Script::L, -1))
+                    {
+                        LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                    }
                 }
             }
         }
@@ -194,6 +251,53 @@ namespace Gatesrv
     }
 
 
+    int send_proto(lua_State* L)
+    {
+       int sid = (int)lua_tonumber(L, 1); 
+       size_t msgnamelen = 0; 
+       char* msgname = (char*)lua_tolstring(L, 2, &msgnamelen);
+       
+       size_t msgdatalen = 0;
+       char* msgdata = (char*)lua_tolstring(L, 3, &msgdatalen);
+
+       if (sockfd_ == -1)
+       {
+           LOG_DEBUG("gatesrv not accept\n");
+           return 0;
+       }
+
+       int plen = sizeof(unsigned short) + sizeof(sid) + msgnamelen + 1 + msgdatalen;
+
+       LOG_DEBUG("gatesrv send proto plen(%d) to sid(%d)\n", plen, sid);
+
+       //插入到缓冲区
+       char* buf = Sendbuf::alloc(sockfd_, plen);
+       if (!buf)
+       {
+           return 0;
+       }
+       LOG_DEBUG("gatesrv send %d to sockfd(%d)\n", plen, sockfd_);
+
+       *(unsigned short*)buf = plen;
+       buf += 2;
+
+       *(unsigned int*)buf = sid;
+       buf += 4;
+
+       memcpy(buf, msgname, msgnamelen);
+       buf += msgnamelen;
+
+       buf[0] = 0;
+       buf += 1;
+
+       memcpy(buf, msgdata, msgdatalen);
+       buf += msgdatalen;
+
+       Sendbuf::flush(sockfd_, buf, plen);
+       aeCreateFileEvent(Net::loop, sockfd_, AE_WRITABLE, _ev_writable, NULL);
+       return plen;
+
+    }
 
     int send(int sid, const void* data, unsigned short datalen)
     {

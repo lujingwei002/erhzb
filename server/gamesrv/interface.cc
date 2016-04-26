@@ -1,6 +1,6 @@
 /*
 ** Lua binding: gamesrv
-** Generated automatically by tolua++-1.0.92 on Mon Apr 25 16:29:00 2016.
+** Generated automatically by tolua++-1.0.92 on Tue Apr 26 10:39:53 2016.
 */
 
 #ifndef __cplusplus
@@ -107,6 +107,33 @@ static int tolua_gamesrv_Gatesrv_send00(lua_State* tolua_S)
 #ifndef TOLUA_RELEASE
  tolua_lerror:
  tolua_error(tolua_S,"#ferror in function 'send'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* function: Gatesrv::send_proto */
+#ifndef TOLUA_DISABLE_tolua_gamesrv_Gatesrv_send_proto00
+static int tolua_gamesrv_Gatesrv_send_proto00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     false
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  lua_State* L =  tolua_S;
+  {
+return Gatesrv::send_proto(L);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'send_proto'.",&tolua_err);
  return 0;
 #endif
 }
@@ -269,6 +296,7 @@ TOLUA_API int tolua_gamesrv_open (lua_State* tolua_S)
    tolua_function(tolua_S,"init",tolua_gamesrv_Gatesrv_init00);
    tolua_function(tolua_S,"listen",tolua_gamesrv_Gatesrv_listen00);
    tolua_function(tolua_S,"send",tolua_gamesrv_Gatesrv_send00);
+   tolua_function(tolua_S,"send_proto",tolua_gamesrv_Gatesrv_send_proto00);
   tolua_endmodule(tolua_S);
   tolua_module(tolua_S,"Dbclient",0);
   tolua_beginmodule(tolua_S,"Dbclient");

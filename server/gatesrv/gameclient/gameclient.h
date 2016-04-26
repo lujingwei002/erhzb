@@ -11,7 +11,9 @@ namespace Gameclient
      * data:数据
      * datalen:数据长度
      */
-    int send(int sid, const void* data, unsigned short datalen);
+    int send_data(int sid, const void* data, unsigned short datalen);
+    int send_session_open(int sid);
+    int send_session_close(int sid);
     int update();
 };
 //tolua_endinclude "stdafx.h"

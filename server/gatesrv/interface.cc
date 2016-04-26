@@ -1,6 +1,6 @@
 /*
 ** Lua binding: gatesrv
-** Generated automatically by tolua++-1.0.92 on Mon Apr 25 16:30:48 2016.
+** Generated automatically by tolua++-1.0.92 on Tue Apr 26 11:07:43 2016.
 */
 
 #ifndef __cplusplus
@@ -228,9 +228,9 @@ static int tolua_gatesrv_Gameclient_is_connect00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
-/* function: Gameclient::send */
-#ifndef TOLUA_DISABLE_tolua_gatesrv_Gameclient_send00
-static int tolua_gatesrv_Gameclient_send00(lua_State* tolua_S)
+/* function: Gameclient::send_data */
+#ifndef TOLUA_DISABLE_tolua_gatesrv_Gameclient_send_data00
+static int tolua_gatesrv_Gameclient_send_data00(lua_State* tolua_S)
 {
 #ifndef TOLUA_RELEASE
  tolua_Error tolua_err;
@@ -248,14 +248,72 @@ static int tolua_gatesrv_Gameclient_send00(lua_State* tolua_S)
   const void* data = ((const void*)  tolua_touserdata(tolua_S,2,0));
   unsigned short datalen = ((unsigned short)  tolua_tonumber(tolua_S,3,0));
   {
-   int tolua_ret = (int)  Gameclient::send(sid,data,datalen);
+   int tolua_ret = (int)  Gameclient::send_data(sid,data,datalen);
    tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
   }
  }
  return 1;
 #ifndef TOLUA_RELEASE
  tolua_lerror:
- tolua_error(tolua_S,"#ferror in function 'send'.",&tolua_err);
+ tolua_error(tolua_S,"#ferror in function 'send_data'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* function: Gameclient::send_session_open */
+#ifndef TOLUA_DISABLE_tolua_gatesrv_Gameclient_send_session_open00
+static int tolua_gatesrv_Gameclient_send_session_open00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isnumber(tolua_S,1,0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  int sid = ((int)  tolua_tonumber(tolua_S,1,0));
+  {
+   int tolua_ret = (int)  Gameclient::send_session_open(sid);
+   tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'send_session_open'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
+/* function: Gameclient::send_session_close */
+#ifndef TOLUA_DISABLE_tolua_gatesrv_Gameclient_send_session_close00
+static int tolua_gatesrv_Gameclient_send_session_close00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isnumber(tolua_S,1,0,&tolua_err) ||
+     !tolua_isnoobj(tolua_S,2,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  int sid = ((int)  tolua_tonumber(tolua_S,1,0));
+  {
+   int tolua_ret = (int)  Gameclient::send_session_close(sid);
+   tolua_pushnumber(tolua_S,(lua_Number)tolua_ret);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'send_session_close'.",&tolua_err);
  return 0;
 #endif
 }
@@ -307,7 +365,9 @@ TOLUA_API int tolua_gatesrv_open (lua_State* tolua_S)
    tolua_function(tolua_S,"init",tolua_gatesrv_Gameclient_init00);
    tolua_function(tolua_S,"connect",tolua_gatesrv_Gameclient_connect00);
    tolua_function(tolua_S,"is_connect",tolua_gatesrv_Gameclient_is_connect00);
-   tolua_function(tolua_S,"send",tolua_gatesrv_Gameclient_send00);
+   tolua_function(tolua_S,"send_data",tolua_gatesrv_Gameclient_send_data00);
+   tolua_function(tolua_S,"send_session_open",tolua_gatesrv_Gameclient_send_session_open00);
+   tolua_function(tolua_S,"send_session_close",tolua_gatesrv_Gameclient_send_session_close00);
    tolua_function(tolua_S,"update",tolua_gatesrv_Gameclient_update00);
   tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);

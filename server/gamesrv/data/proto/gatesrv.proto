@@ -1,0 +1,7 @@
+package gatesrv;
+
+
+message ECHO 
+{
+    optional string str = 1[default = ''];
+}

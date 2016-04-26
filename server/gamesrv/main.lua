@@ -14,6 +14,7 @@ require('login.main')
 --测试protobuf是确初始化
 Pblua.import('data/dbproto/user.proto')
 Pblua.import('data/proto/login.proto')
+Pblua.import('data/proto/gatesrv.proto')
 local user = Pblua.msgnew('dbproto.User')
 assert(user)
 

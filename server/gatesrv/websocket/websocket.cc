@@ -130,25 +130,41 @@ namespace Websocket
 
     }
 
-    int dispatch_frame(Session* session, const char* data, size_t datalen)
+    static int dispatch_frame(Session* session, int opcode, const char* data, size_t datalen)
     {
-        LOG_DEBUG("recv a frame:%s\n", data);
-        //分发到lua处理
-        //send_string_frame(sockfd, "hello");
-        static char funcname[64] = "Websocket.dispatch";
-        Script::pushluafunction(funcname);
-        lua_pushnumber(Script::L, session->sid);
-        lua_pushlightuserdata(Script::L, (void*)data);
-        lua_pushnumber(Script::L, datalen);
-        if (lua_pcall(Script::L, 3, 0, 0) != 0)
+        LOG_DEBUG("recv a frame opcode(%d) datalen(%d)\n", opcode, datalen);
+        if (opcode == 8)
         {
-            if (lua_isstring(Script::L, -1))
+            //分发到lua处理
+            static char funcname[64] = "Websocket.on_session_close";
+            Script::pushluafunction(funcname);
+            lua_pushnumber(Script::L, session->sid);
+            if (lua_pcall(Script::L, 1, 0, 0) != 0)
             {
-                LOG_DEBUG("Websocket.dispatch error %s\n", lua_tostring(Script::L, -1));
+                if (lua_isstring(Script::L, -1))
+                {
+                    LOG_DEBUG("Websocket.dispatch error %s\n", lua_tostring(Script::L, -1));
+                }
             }
-            Script::printluastack();
+            return 0;
+
+        } else 
+        {
+            //分发到lua处理
+            static char funcname[64] = "Websocket.dispatch";
+            Script::pushluafunction(funcname);
+            lua_pushnumber(Script::L, session->sid);
+            lua_pushlightuserdata(Script::L, (void*)data);
+            lua_pushnumber(Script::L, datalen);
+            if (lua_pcall(Script::L, 3, 0, 0) != 0)
+            {
+                if (lua_isstring(Script::L, -1))
+                {
+                    LOG_DEBUG("Websocket.dispatch error %s\n", lua_tostring(Script::L, -1));
+                }
+            }
+            return 0;
         }
-        return 0;
     }
 
     int combine_all_frame(Session* session, const char* data , size_t datalen)
@@ -157,10 +173,12 @@ namespace Websocket
         char* combine_payload_data = (char*)data;
         unsigned long long packet_len = 0;
         unsigned long long total_len = 0;
+        int opcode = 0;
         for(;;)
         {
             FrameHeader* frame_header = (FrameHeader*)framedata;
             int fin = frame_header->fin;
+            opcode = frame_header->opcode;
             unsigned long long framelen = 2;
             unsigned long long real_payload_len = frame_header->payload_len;
             char *payload_data = 0;
@@ -209,7 +227,7 @@ namespace Websocket
             }
         }
         *combine_payload_data = 0;
-        dispatch_frame(session, data, packet_len);
+        dispatch_frame(session, opcode, data, packet_len);
         return total_len;
     }
 
@@ -330,7 +348,6 @@ namespace Websocket
             struct tm* tmp = localtime(&t);
             static char outtime[128];
             strftime(outtime, sizeof(outtime), "Date:%a, %d %b %Y %H:%M:%S GMT\r\n", tmp);
-            //printf("sfasfasfffffffffffffffffffffffffff %s\n", outtime);
             LOG_DEBUG("Sec-WebSocket-Accept: %s\n", sec_websocket_accept);
             send(sockfd, "HTTP/1.1 101 Switching Protocols\r\n"
                          "Connection:Upgrade\r\n"
@@ -338,11 +355,23 @@ namespace Websocket
                          "Upgrade:WebSocket\r\n"
                          "Access-Control-Allow-Credentials:true\r\n"
                          "Access-Control-Allow-Headers:content-type\r\n");
-            //send(sockfd, "Date:Mon, 26 Nov 2012 23:42:44 GMT\r\n");
             send(sockfd, outtime);
             send(sockfd, "Sec-WebSocket-Accept:");
             send(sockfd, sec_websocket_accept);
             send(sockfd, "\r\n\r\n");
+
+            //分发到lua处理
+            static char funcname[64] = "Websocket.on_session_open";
+            Script::pushluafunction(funcname);
+            lua_pushnumber(Script::L, session->sid);
+            if (lua_pcall(Script::L, 1, 0, 0) != 0)
+            {
+                if (lua_isstring(Script::L, -1))
+                {
+                    LOG_DEBUG("Websocket.on_session_open error %s\n", lua_tostring(Script::L, -1));
+                }
+            }
+
             session->had_shake = 1;
             return rnrn + 4; 
         } else 
@@ -419,6 +448,7 @@ namespace Websocket
     //发送帧
     int send_frame(int sid, int opcode, const void* data, unsigned short datalen)
     {
+        LOG_DEBUG("Websocket.send_frame opcode(%d) datalen(%d)", opcode, data, datalen);
         Session* session = session_find(sid);
         if(!session)
         {
@@ -441,7 +471,7 @@ namespace Websocket
             _real_send(sockfd, data, datalen);
         } else 
         {
-            header.payload_len = 126;
+            header.payload_len = datalen;
             _real_send(sockfd, &header, sizeof(header));
             _real_send(sockfd, data, datalen);
         }

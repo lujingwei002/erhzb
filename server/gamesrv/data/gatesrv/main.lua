@@ -10,7 +10,21 @@ function dispatch_json(sid, msgname, modname, actionname, data)
     end
     print(msg:debug_string())
     local mod = _G[modname]
-    local action = mod[actionname]
+    local action = mod['MSG_'..actionname]
     action(sid, msg)
     --Gatesrv.send(sid, data, datalen)
+end
+
+
+function on_session_open(sid)
+    print('Gatesrv.on_session_open', sid)
+end
+
+function on_session_close(sid)
+    print('Gatesrv.on_session_close', sid)
+end
+
+function MSG_ECHO(sid, msg)
+    print('echo')
+    Gatesrv.send_proto(sid, msg:msgname(), msg:tostring())
 end
