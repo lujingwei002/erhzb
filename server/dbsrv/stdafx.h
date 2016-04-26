@@ -23,4 +23,4 @@
 #include "net/recvbuf.h"
 #include "net/sendbuf.h"
 #include "gamesrv/gamesrv.h"
-#include "lmysql/lmysql.h"
+#include "sqlconn/sqlconn.h"

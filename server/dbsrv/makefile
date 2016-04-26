@@ -12,7 +12,7 @@ SOURCE = $(wildcard \
 		 ../srvlib/log/*.cc\
 		 script/*.cc\
 		 gamesrv/*.cc\
-		 lmysql/*.cc\
+		 sqlconn/*.cc\
 		 main.cc\
 		 interface.cc\
 		 ) 

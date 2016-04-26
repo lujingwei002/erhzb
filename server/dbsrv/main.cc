@@ -1,12 +1,20 @@
 #include "stdafx.h"
 
 
+static int time_proc(struct aeEventLoop *eventLoop, long long id, void *clientData)
+{
+    //LOG_LOG("time_proc 1s\n");
+    Sqlconn::update();
+    return 1000; 
+}
+
 int server_init(int argc, char **argv)
 {
     LOG_LOG("server_init\n");
     Net::init();
     Gamesrv::init();
     Script::init();
+    aeCreateTimeEvent(Net::loop, 1000, time_proc, NULL, NULL);
     return 0;
 }
 

@@ -1,1 +1,2 @@
 $cfile "gamesrv/gamesrv.h"
+$cfile "sqlconn/sqlconn.h"

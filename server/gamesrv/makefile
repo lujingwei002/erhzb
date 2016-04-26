@@ -10,8 +10,8 @@ CFLAGS=-O2 -Wall
 SOURCE = $(wildcard \
 		 ../srvlib/net/*.cc\
 		 ../srvlib/log/*.cc\
+		 ../srvlib/encrypt/*.cc\
 		 script/*.cc\
-		 encrypt/*.cc\
 		 dbclient/*.cc\
 		 gatesrv/*.cc\
 		 pblua/*.cc\

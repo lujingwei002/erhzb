@@ -6,6 +6,10 @@ include "httpclient.php";
 $appid = "wxc5748610fdf0779b";
 $appsecret = "c7836b876f458aba14d53688069a1e36";
 $secret = "lol_client";
+$db_host = "127.0.0.1";
+$db_name = "test";
+$db_user = "test";
+$db_passwd = "test";
 
 $http_user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'agent';
 $code = isset($GET['code']) ? $_GET['code'] : 'code';
@@ -62,6 +66,18 @@ $ur = "https://api.weixin.qq.com/sns/userinfo?access_token=$access_token&openid=
 
 
 //保存到数据库
-
+/*
+$con = mysql_connect($db_host, $db_user, $db_passwd);
+if(!$con) {
+    die("asfdsaf");
+}
+mysql_query("SET NAMES utf8", $con); 
+mysql_select_db($db_name, $con);
+$result = mysql_query("SELECT * FROM account");
+while($row = mysql_fetch_array($result))
+{
+    $row['afaf'];
+}
+ */
 ?>
 
