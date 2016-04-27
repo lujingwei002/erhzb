@@ -17,9 +17,10 @@ function GET(sid, uid)
 end
 
 
-function SET(uid, data)
+function SET(sid, uid, data)
     print('Login.SET', uid, data)
     Sqlconn.command(string.format('replace into actor(uid, data) value (%d, "%s")', uid, Sqlconn.escape(data)))
+    Gamesrv.post('Login.SET', sid, uid) 
 end
 
 function LOGIN(sid, openid, time, sig)

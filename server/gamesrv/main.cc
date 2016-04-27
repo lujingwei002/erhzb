@@ -14,6 +14,7 @@ int server_init(int argc, char **argv)
     Net::init();
     Gatesrv::init();
     Script::init();
+    Log::closelevel(DEBUG);
     aeCreateTimeEvent(Net::loop, 1000, time_proc, NULL, NULL);
     return 0;
 }

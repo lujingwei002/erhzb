@@ -18,7 +18,7 @@ namespace Gatesrv
         Sendbuf::free(sockfd);
         Recvbuf::free(sockfd);
         close(sockfd);
-        LOG_DEBUG("sockfd(%d) real close %s\n", sockfd, reason);
+        LOG_LOG("sockfd(%d) real close %s\n", sockfd, reason);
     }
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
@@ -96,7 +96,7 @@ namespace Gatesrv
             {
                 if (lua_isstring(Script::L, -1))
                 {
-                    LOG_DEBUG("gatesrv.on_session_open error %s\n", lua_tostring(Script::L, -1));
+                    LOG_ERROR("gatesrv.on_session_open error %s\n", lua_tostring(Script::L, -1));
                 }
             }
         }
@@ -153,7 +153,7 @@ namespace Gatesrv
                 {
                     if (lua_isstring(Script::L, -1))
                     {
-                        LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                        LOG_ERROR("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
                     }
                 }
             } else 
@@ -169,7 +169,7 @@ namespace Gatesrv
                 {
                     if (lua_isstring(Script::L, -1))
                     {
-                        LOG_DEBUG("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                        LOG_ERROR("gatesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
                     }
                 }
             }
@@ -243,7 +243,7 @@ namespace Gatesrv
         {
             return;
         }
-        LOG_DEBUG("gatesrv accept a new socket sockfd(%d)\n", sockfd);
+        LOG_LOG("gatesrv accept a new socket sockfd(%d)\n", sockfd);
         Sendbuf::create(sockfd);
         Recvbuf::create(sockfd, 10240);
         aeCreateFileEvent(Net::loop, sockfd, AE_READABLE, _ev_readable, NULL);
@@ -303,7 +303,7 @@ namespace Gatesrv
     {
         if (sockfd_ == -1)
         {
-            LOG_DEBUG("gatesrv not accept\n");
+            LOG_ERROR("gatesrv not accept\n");
             return 0;
         }
         int plen = sizeof(datalen) + sizeof(sid) + datalen;

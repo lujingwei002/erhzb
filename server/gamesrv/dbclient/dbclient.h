@@ -8,5 +8,6 @@ namespace Dbclient
     int send(int sockfd, const char* data, unsigned short datalen);
     int post(lua_State* L);
     int update();
+    bool is_connect();
 };
 //tolua_end

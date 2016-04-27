@@ -132,7 +132,7 @@ namespace Websocket
 
     static int dispatch_frame(Session* session, int opcode, const char* data, size_t datalen)
     {
-        LOG_DEBUG("recv a frame opcode(%d) datalen(%d)\n", opcode, datalen);
+        LOG_LOG("websocket recv a frame opcode(%d) datalen(%d)\n", opcode, datalen);
         if (opcode == 8)
         {
             //分发到lua处理

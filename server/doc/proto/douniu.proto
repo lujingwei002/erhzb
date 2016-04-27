@@ -1,0 +1,132 @@
+package douniu;
+
+/*
+牌的值
+101 102 103 104 105 106 107 108 109 110 111 112 113
+201 202 203 204 205 206 207 208 209 210 211 212 213
+301 302 303 304 305 306 307 308 309 310 311 312 313
+401 402 403 404 405 406 407 408 409 410 411 412 413
+*/
+
+//进入房间
+message ENTER
+{
+    //房间类型 1.100分底牌 2.xx分底牌
+    optional int32 type = 1[default = 0];
+}
+
+message ENTER_R
+{
+    //非0就是表示失败
+    optional int32 errno = 2[defaut = 0];
+    optional string errstr = 3[default = ''];
+}
+
+//玩家进入
+message ACTOR_ENTER_R
+{
+    optional Actor actor = 1;
+}
+
+//玩家退出
+message ACTOR_EXIT_R
+{
+    optional int32 uid = 1[default = 0];
+}
+
+message Actor 
+{
+    //用户id
+    optional int32 uid = 1[default = 0];
+    //用户名
+    optional string username = 2[default = ''];
+    //头像地址
+    optional string headimg = 3[default = ''];
+    //vip等级
+    optional int32 viplevel = 4[default = 0];
+    //是否庄家
+    optional int32 is_master = 5[defualt = 0];
+    //5张牌
+    repeated int32 cards = 6;
+    //是否旁边者
+    optional int32 is_observer = 7[default = 0];
+}
+
+message GAME_INFO_R
+{
+    //当前的养成
+    optional int32 state = 1[default = 0];
+    //倒计时
+    optional int32 countdown = 2[default = 0];
+    //每个玩家的信息
+    repeated Actor actors = 3;
+}
+
+//抢庄
+message QIANGZHUANG 
+{
+    //0。不抢 1.抢庄
+    optional int32 is_master = 1[default = 0];
+}
+
+//抢庄广播
+message QIANGZHUANG_R
+{
+    optional int32 uid = 1[default = 0];
+    //0。不抢 1.抢庄
+    optional int32 is_master = 2[default = 0];
+}
+
+//抢庄结果
+message ZHUANG_R
+{
+    optional int32 uid = 1[default = 0];
+}
+
+//下注
+message XIAZHU
+{
+    //倍数
+    optional int32 ratio = 1[default = 0];
+}
+
+//下注结果广播
+message XIAZHU_R
+{
+    optional int32 uid = 1[default = 0];
+    //倍数
+    optional int32 ratio = 2[default = 0];
+}
+
+//选牌
+message XUANPAI 
+{
+    repeated int32 cards = 1;
+}
+
+//翻牌
+message FANPAI_R
+{
+    optional int32 Actor actor = 1;
+}
+
+
+//结算信息
+message JieSuanInfo
+{
+    //用户id
+    optional int32 uid = 1[default = 0];
+    //倍率
+    optional int32 ratio = 2[default = 0];
+    //得分
+    optional int32 score = 3[default = 0];
+    //牌型
+    optional int32 result = 4[default = 0];
+}
+
+//结算
+message JIESUAN
+{
+    repeated JieSuanInfo infos = 1;
+}
+

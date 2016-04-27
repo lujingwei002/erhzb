@@ -9,6 +9,10 @@ namespace Dbclient
     static unsigned short port_;
 
 
+    bool is_connect()
+    {
+        return is_connect_;
+    }
     int init()
     {
         return 0;
@@ -101,7 +105,7 @@ namespace Dbclient
         {
             if (lua_isstring(Script::L, -1))
             {
-                LOG_DEBUG("gamesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
+                LOG_ERROR("gamesrv.dispatch error %s\n", lua_tostring(Script::L, -1));
             }
         }
         lua_pop(Script::L, lua_gettop(Script::L));
@@ -223,7 +227,7 @@ namespace Dbclient
         {
             return 0;
         }
-        LOG_DEBUG("dbclient send %d to sockfd(%d)\n", plen, sockfd_);
+        LOG_LOG("dbclient send %d to sockfd(%d)\n", plen, sockfd_);
 
         //写包长
         *(unsigned short*)buf = plen;

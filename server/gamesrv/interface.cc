@@ -1,6 +1,6 @@
 /*
 ** Lua binding: gamesrv
-** Generated automatically by tolua++-1.0.92 on Tue Apr 26 10:39:53 2016.
+** Generated automatically by tolua++-1.0.92 on Wed Apr 27 11:26:01 2016.
 */
 
 #ifndef __cplusplus
@@ -284,6 +284,33 @@ static int tolua_gamesrv_Dbclient_update00(lua_State* tolua_S)
 }
 #endif //#ifndef TOLUA_DISABLE
 
+/* function: Dbclient::is_connect */
+#ifndef TOLUA_DISABLE_tolua_gamesrv_Dbclient_is_connect00
+static int tolua_gamesrv_Dbclient_is_connect00(lua_State* tolua_S)
+{
+#ifndef TOLUA_RELEASE
+ tolua_Error tolua_err;
+ if (
+     !tolua_isnoobj(tolua_S,1,&tolua_err)
+ )
+  goto tolua_lerror;
+ else
+#endif
+ {
+  {
+   bool tolua_ret = (bool)  Dbclient::is_connect();
+   tolua_pushboolean(tolua_S,(bool)tolua_ret);
+  }
+ }
+ return 1;
+#ifndef TOLUA_RELEASE
+ tolua_lerror:
+ tolua_error(tolua_S,"#ferror in function 'is_connect'.",&tolua_err);
+ return 0;
+#endif
+}
+#endif //#ifndef TOLUA_DISABLE
+
 /* Open function */
 TOLUA_API int tolua_gamesrv_open (lua_State* tolua_S)
 {
@@ -305,6 +332,7 @@ TOLUA_API int tolua_gamesrv_open (lua_State* tolua_S)
    tolua_function(tolua_S,"send",tolua_gamesrv_Dbclient_send00);
    tolua_function(tolua_S,"post",tolua_gamesrv_Dbclient_post00);
    tolua_function(tolua_S,"update",tolua_gamesrv_Dbclient_update00);
+   tolua_function(tolua_S,"is_connect",tolua_gamesrv_Dbclient_is_connect00);
   tolua_endmodule(tolua_S);
  tolua_endmodule(tolua_S);
  return 1;

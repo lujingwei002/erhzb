@@ -15,7 +15,7 @@ int server_init(int argc, char **argv)
     Websocket::init();
     Script::init();
     aeCreateTimeEvent(Net::loop, 1000, time_proc, NULL, NULL);
-   // Log::closelevel(DEBUG);
+    Log::closelevel(DEBUG);
     //Daemon::init();
     return 0;
 }

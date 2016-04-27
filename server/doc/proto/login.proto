@@ -19,7 +19,7 @@ message LOGIN
 //登录回复
 message LOGIN_R 
 {
-    //0。成功  1.微信登录不成功  2.签名不正确 3.time超时
+    //0。成功  1.微信登录不成功  2.签名不正确 3.time超时 4.系统错误 5.账号重复登录
     optional int32 errno = 1[default = 0];
     //返回的用户id
     optional int32 uid = 2[default = 0];

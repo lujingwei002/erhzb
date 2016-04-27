@@ -31,20 +31,20 @@ namespace Gameclient
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG_LOG("ev_writable\n");
+        LOG_DEBUG("ev_writable\n");
         //发送数据
         for(;;)
         {
             int datalen = Sendbuf::datalen(sockfd);
             if (datalen <= 0)
             {
-                LOG_LOG("delete write event\n");
+                LOG_DEBUG("delete write event\n");
                 aeDeleteFileEvent(Net::loop, sockfd, AE_WRITABLE);
                 break;
             }
             char* buf = Sendbuf::get_read_ptr(sockfd);
             int ir = ::send(sockfd, buf, datalen, 0);
-            LOG_LOG("real send %d\n", ir);
+            LOG_DEBUG("real send %d\n", ir);
             if (ir > 0) 
             {
                 Sendbuf::skip_read_ptr(sockfd, ir);
@@ -101,14 +101,14 @@ namespace Gameclient
 
     static void _ev_readable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG_LOG("ev_readable\n");
+        LOG_DEBUG("ev_readable\n");
         //接收数据
         for(;;)
         {
             char* wptr= Recvbuf::getwptr(sockfd);
             int buflen = Recvbuf::bufremain(sockfd);
             int ir = ::recv(sockfd, wptr, buflen, 0);
-            LOG_LOG("gameclient sockfd(%d) real recv %d\n", sockfd, ir);
+            LOG_DEBUG("gameclient sockfd(%d) real recv %d\n", sockfd, ir);
             if (ir == 0 || (ir == -1 && errno != EAGAIN))
             {
                 real_close(sockfd, "peer close");
