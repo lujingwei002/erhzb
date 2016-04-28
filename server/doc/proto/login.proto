@@ -41,4 +41,6 @@ message GETDATA_R
     optional string username = 2[default = ''];
     //头像
     optional string headimg = 3[default = ''];
+    //铜钱, 金币
+    optional int32 coin = 4[default = 0];
 }

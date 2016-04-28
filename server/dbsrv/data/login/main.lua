@@ -3,15 +3,25 @@ module('Login', package.seeall)
 
 function GET(sid, uid)
     print('Login.GET', uid)
-    local result = Sqlconn.select(string.format('select * from actor where uid = %d', uid))
-    if not result or #result == 0 then
+    local actorrow = Sqlconn.select(string.format('select * from actor where uid = %d', uid))
+    if not actorrow or #actorrow == 0 then
         Gamesrv.post('Login.GET', sid, uid, nil)
         return
     end
-    result = result[1]
+    actorrow = actorrow[1]
+
+    local accountrow = Sqlconn.select(string.format('select * from account where uid = %d', uid))
+    if not accountrow or #accountrow == 0 then
+        Gamesrv.post('Login.GET', sid, uid, nil)
+        return
+    end
+    accountrow = accountrow[1]
+
     local actordata = Pblua.msgnew('dbproto.Actor')
-    actordata.coin = result.coin
-    actordata.diamond = result.diamond
+    actordata.headimg = accountrow.headimg
+    actordata.coin = actorrow.coin
+    actordata.diamond = actorrow.diamond
+    actordata.username = actorrow.username
 
     Gamesrv.post('Login.GET', sid, uid, actordata:tostring()) 
 end

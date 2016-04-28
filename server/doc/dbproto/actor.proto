@@ -5,4 +5,6 @@ message Actor
     optional int32 uid = 1[default = 0];
     optional int32 coin = 2[default = 0];
     optional int32 diamond = 3[default = 0];
+    optional string headimg = 4[default = ''];
+    optional string username = 5[default = ''];
 } 

@@ -97,4 +97,16 @@ namespace Script
         return 0;
     }
 
+    void update()
+    {
+        static char douniu_update[32] = "Dounie.update";
+        pushluafunction(douniu_update);
+        if (lua_pcall(Script::L, 0, 0, 0) != 0)
+        {
+            if (lua_isstring(Script::L, -1))
+            {
+                LOG_ERROR("Dounie.update error %s\n", lua_tostring(Script::L, -1));
+            }
+        }
+    }
 };

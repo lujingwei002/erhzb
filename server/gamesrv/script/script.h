@@ -12,4 +12,5 @@ namespace Script
     int pushluafunction(const char *func);
     int printluastack(); 
     int init();
+    void update();
 };

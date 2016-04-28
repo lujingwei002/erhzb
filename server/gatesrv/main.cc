@@ -3,14 +3,15 @@
 
 static int time_proc(struct aeEventLoop *eventLoop, long long id, void *clientData)
 {
-    //LOG_LOG("time_proc 1s\n");
+    //LOG_LOG("time_proc 1s");
     Gameclient::update();
+    Websocket::update();
     return 1000; 
 }
 
 int server_init(int argc, char **argv)
 {
-    LOG_LOG("server_init\n");
+    LOG_LOG("server_init");
     Net::init();
     Websocket::init();
     Script::init();
@@ -23,14 +24,14 @@ int server_init(int argc, char **argv)
 
 int server_loop()
 {
-    LOG_LOG("server_loop\n");
+    LOG_LOG("server_loop");
     Net::run();
     return 0;
 }
 
 int server_exit()
 {
-    LOG_LOG("server_exit\n");
+    LOG_LOG("server_exit");
     return 0;
 }
 

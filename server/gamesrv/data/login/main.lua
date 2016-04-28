@@ -65,9 +65,14 @@ end
 
 
 function MSG_GETDATA(actor, msg)
-    print('hehhahe')
+    local actordata = actor.actordata
+
     local reply = Pblua.msgnew('login.GETDATA_R')
-    reply.diamond = 100
+    reply.diamond = actordata.diamond
+    reply.coin = actordata.coin
+    reply.headimg = actordata.headimg
+    reply.username = actordata.username
+
     Actor.post_msg(actor, reply)
 end
 

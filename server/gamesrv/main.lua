@@ -13,6 +13,7 @@ require('gatesrv.main')
 require('login.main')
 require('actor.actormgr')
 require('douniu.main')
+require('config.dounieconf')
 
 --测试protobuf是确初始化
 Pblua.mappath('dbproto', '../doc/dbproto')
@@ -30,4 +31,5 @@ local json = Json.decode('{"uid" : 1}')
 Gatesrv.listen('127.0.0.1', 8081)
 Dbclient.connect('127.0.0.1', 8082)
 
-Dounie.test()
+
+Dounie.main()

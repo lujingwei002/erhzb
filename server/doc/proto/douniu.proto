@@ -8,6 +8,19 @@ package douniu;
 401 402 403 404 405 406 407 408 409 410 411 412 413
 */
 
+/*
+牌型 
+13 5小牛
+12 4炸 
+11 5花牛
+10 牛牛
+9 牛牛
+..
+..
+..
+0 没牛
+*/
+
 //进入房间
 message ENTER
 {
@@ -25,7 +38,19 @@ message ENTER_R
 //玩家进入
 message ACTOR_ENTER_R
 {
-    optional Actor actor = 1;
+    //用户id
+    optional int32 uid = 1[default = 0];
+    //用户名
+    optional string username = 2[default = ''];
+    //头像地址
+    optional string headimg = 3[default = ''];
+    //vip等级
+    optional int32 viplevel = 4[default = 0];
+}
+
+//退出房间
+message EXIT
+{
 }
 
 //玩家退出
@@ -34,7 +59,14 @@ message ACTOR_EXIT_R
     optional int32 uid = 1[default = 0];
 }
 
-message Actor 
+//进入这个状态
+message ENTER_STATE_R
+{
+    //状态的枚举值
+    optional int32 state = 1[default = 0];
+}
+
+message PlayerInfo 
 {
     //用户id
     optional int32 uid = 1[default = 0];
@@ -44,22 +76,26 @@ message Actor
     optional string headimg = 3[default = ''];
     //vip等级
     optional int32 viplevel = 4[default = 0];
-    //是否庄家
-    optional int32 is_master = 5[defualt = 0];
     //5张牌
     repeated int32 cards = 6;
-    //是否旁边者
-    optional int32 is_observer = 7[default = 0];
+    //1.旁观者 2.玩家 3.玩家（庄家）
+    optional int32 member = 7[default = 0];
 }
 
-message GAME_INFO_R
+message ROOM_INFO_R
 {
     //当前的养成
     optional int32 state = 1[default = 0];
     //倒计时
     optional int32 countdown = 2[default = 0];
     //每个玩家的信息
-    repeated Actor actors = 3;
+    repeated PlayerInfo player_list = 3;
+}
+
+//发牌, 这个消息并不会广播，只会发给自己, 告诉你哪三张牌
+message FAPAI_R
+{
+    repeated int32 cards = 1;
 }
 
 //抢庄
@@ -83,6 +119,12 @@ message ZHUANG_R
     optional int32 uid = 1[default = 0];
 }
 
+//告诉你，你可以下哪些倍数
+message XIAZHU_LIST
+{
+    repeated int32 ratio_list = 1;
+}
+
 //下注
 message XIAZHU
 {
@@ -101,13 +143,24 @@ message XIAZHU_R
 //选牌
 message XUANPAI 
 {
+    //牌
     repeated int32 cards = 1;
+}
+
+//选牌前会告诉你，你有哪些牌
+message XUANPAI_R
+{
+    repeated int32 cards = 1;
+    //最好的牌型, 参考上面的定义
+    optional int32 best_paixing = 2[default = 0];
 }
 
 //翻牌
 message FANPAI_R
 {
-    optional int32 Actor actor = 1;
+    optional int32 uid = 1[default = 0];
+    repeated int32 cards = 2;
+    optional int32 paixing = 3[default = 0];
 }
 
 
@@ -130,3 +183,12 @@ message JIESUAN
     repeated JieSuanInfo infos = 1;
 }
 
+
+//倒计时
+message COUNTDOWN 
+{
+    //房间状态
+    optional int32 state  = 1[default = 0];
+    //倒计时
+    optional int32 coutndown = 2[defaut = 0];
+}

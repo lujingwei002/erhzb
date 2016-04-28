@@ -6,6 +6,8 @@ create  table  if not exists  account
        openid varchar(64) comment '平台id',
        sig varchar(128) comment '签名',
        time int comment '登录时间戳',
+       headimg varchar(128) comment '头像地址',
+       username varchar(128) comment '用户名',
        primary key(uid)
 )
 ENGINE = MYISAM;

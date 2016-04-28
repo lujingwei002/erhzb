@@ -7,7 +7,6 @@ print('==============================================')
 package.path = package.path..';'..'./data/?.lua'
 print(package.path)
 
-require('login.main')
 require('websocket.main')
 require('gameclient.main')
 

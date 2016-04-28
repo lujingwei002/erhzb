@@ -36,6 +36,8 @@ int log2file(char *file_name, int file_max_linenum, char *file_dir);
                                 Log::log(str, ## __VA_ARGS__);
 
 #define LOG_MSG(str, ...)       Log::msg(str, ## __VA_ARGS__);
-#define LOG_DEBUG(str, ...)     Log::debug(str, ## __VA_ARGS__);
+
+#define LOG_DEBUG(str, ...)     Log::debug("%s:%d", __FILE__, __LINE__);\
+                                Log::debug(str, ## __VA_ARGS__);
 
 #endif

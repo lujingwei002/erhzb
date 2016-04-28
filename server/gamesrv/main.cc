@@ -5,6 +5,7 @@ static int time_proc(struct aeEventLoop *eventLoop, long long id, void *clientDa
 {
     //LOG_LOG("time_proc 1s\n");
     Dbclient::update();
+    Script::update();
     return 1000; 
 }
 

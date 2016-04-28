@@ -11,6 +11,3 @@ function dispatch(sockfd, data, datalen)
 end
 
 
-function GET_DATA(data, datalen)
-
-end

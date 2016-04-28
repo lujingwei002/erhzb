@@ -26,25 +26,25 @@ namespace Gameclient
         close(sockfd);
         sockfd_ = -1;
         is_connect_ = false;
-        LOG_LOG("gameclient sockfd(%d) real close %s\n", sockfd, reason);
+        LOG_LOG("gameclient sockfd(%d) real close %s", sockfd, reason);
     }
 
     static void _ev_writable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG_DEBUG("ev_writable\n");
+        LOG_DEBUG("ev_writable");
         //发送数据
         for(;;)
         {
             int datalen = Sendbuf::datalen(sockfd);
             if (datalen <= 0)
             {
-                LOG_DEBUG("delete write event\n");
+                LOG_DEBUG("delete write event");
                 aeDeleteFileEvent(Net::loop, sockfd, AE_WRITABLE);
                 break;
             }
             char* buf = Sendbuf::get_read_ptr(sockfd);
             int ir = ::send(sockfd, buf, datalen, 0);
-            LOG_DEBUG("real send %d\n", ir);
+            LOG_DEBUG("real send %d", ir);
             if (ir > 0) 
             {
                 Sendbuf::skip_read_ptr(sockfd, ir);
@@ -66,7 +66,7 @@ namespace Gameclient
         char* body = (char*)data + sizeof(unsigned int);
         unsigned short bodylen = datalen - sizeof(unsigned int);
 
-        LOG_DEBUG("gameclient recv a frame sid %d data %s\n", sid, body);
+        LOG_DEBUG("gameclient recv a frame sid %d data %s", sid, body);
         //分发到lua处理
         static char funcname[64] = "Gameclient.dispatch";
         Script::pushluafunction(funcname);
@@ -77,7 +77,7 @@ namespace Gameclient
         {
             if (lua_isstring(Script::L, -1))
             {
-                LOG_DEBUG("Gameclient.dispatch error %s\n", lua_tostring(Script::L, -1));
+                LOG_DEBUG("Gameclient.dispatch error %s", lua_tostring(Script::L, -1));
             }
         }
         return 0;
@@ -101,14 +101,14 @@ namespace Gameclient
 
     static void _ev_readable(struct aeEventLoop *eventLoop, int sockfd, void *clientData, int mask)
     {
-        LOG_DEBUG("ev_readable\n");
+        LOG_DEBUG("ev_readable");
         //接收数据
         for(;;)
         {
             char* wptr= Recvbuf::getwptr(sockfd);
             int buflen = Recvbuf::bufremain(sockfd);
             int ir = ::recv(sockfd, wptr, buflen, 0);
-            LOG_DEBUG("gameclient sockfd(%d) real recv %d\n", sockfd, ir);
+            LOG_DEBUG("gameclient sockfd(%d) real recv %d", sockfd, ir);
             if (ir == 0 || (ir == -1 && errno != EAGAIN))
             {
                 real_close(sockfd, "peer close");
@@ -138,7 +138,7 @@ namespace Gameclient
     {
         if (!is_connect_)
         {
-            LOG_LOG("gameclient is not connect\n");
+            LOG_LOG("gameclient is not connect");
             return 0;
         }
         unsigned char cmd = 2;
@@ -149,7 +149,7 @@ namespace Gameclient
         {
             return 0;
         }
-        LOG_LOG("gameclient send session open plen(%d) to sid(%d) sockfd(%d)\n", plen, sid, sockfd_);
+        LOG_LOG("gameclient send session open plen(%d) to sid(%d) sockfd(%d)", plen, sid, sockfd_);
 
         *(unsigned short*)buf = plen;
         buf += 2;
@@ -170,7 +170,7 @@ namespace Gameclient
     {
         if (!is_connect_)
         {
-            LOG_LOG("gameclient is not connect\n");
+            LOG_LOG("gameclient is not connect");
             return 0;
         }
         unsigned char cmd = 3;
@@ -181,7 +181,7 @@ namespace Gameclient
         {
             return 0;
         }
-        LOG_LOG("gameclient send session close plen(%d) to sid(%d) sockfd(%d)\n", plen, sid, sockfd_);
+        LOG_LOG("gameclient send session close plen(%d) to sid(%d) sockfd(%d)", plen, sid, sockfd_);
 
         *(unsigned short*)buf = plen;
         buf += 2;
@@ -202,7 +202,7 @@ namespace Gameclient
     {
         if (!is_connect_)
         {
-            LOG_LOG("gameclient is not connect\n");
+            LOG_LOG("gameclient is not connect");
             return 0;
         }
         unsigned char cmd = 1;
@@ -213,7 +213,7 @@ namespace Gameclient
         {
             return 0;
         }
-        LOG_LOG("gameclient send data %d to sockfd(%d)\n", plen, sockfd_);
+        LOG_LOG("gameclient send data %d to sockfd(%d)", plen, sockfd_);
 
         *(unsigned short*)buf = plen;
         buf += 2;
@@ -255,13 +255,13 @@ namespace Gameclient
             sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
             if (sockfd < 0)
             {
-                LOG_LOG("connect socket error\n");
+                LOG_LOG("connect socket error");
                 return 1;
             }
             error = ::fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFD, 0) | O_NONBLOCK);
             if (error < 0)
             {
-                LOG_LOG("connect fcntl error\n");
+                LOG_LOG("connect fcntl error");
                 ::close(sockfd);
                 return 1;
             }
@@ -289,14 +289,14 @@ namespace Gameclient
             error = ::connect(sockfd_, (struct sockaddr *)&addr, sizeof(addr));
             if ((error == 0) || (error < 0 && errno == EISCONN))
             {
-                LOG_LOG("gameclient reconnect success\n");
+                LOG_LOG("gameclient reconnect success");
                 is_connect_ = true;
                 Sendbuf::create(sockfd_);
                 Recvbuf::create(sockfd_, 1024);
                 aeCreateFileEvent(Net::loop, sockfd_, AE_READABLE, _ev_readable, NULL);
             } else
             {
-//                LOG_DEBUG("gameclient reconnect error(%d) errno(%d)\n", error, errno);
+//                LOG_DEBUG("gameclient reconnect error(%d) errno(%d)", error, errno);
             }
         }
         return 0;

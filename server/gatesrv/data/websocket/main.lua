@@ -2,7 +2,7 @@ module('Websocket', package.seeall)
 
 
 function dispatch(sid, data, datalen)
-    print('Websocket dispatch', sid, datalen)
+    Log.log(string.format('Websocket dispatch sid(%d) datalen(%d)', sid, datalen))
     if Gameclient.is_connect() then
         Gameclient.send_data(sid, data, datalen)
     else
@@ -12,7 +12,7 @@ function dispatch(sid, data, datalen)
 end
 
 function on_session_open(sid)
-    print('Websocket.on_session_open', sid)
+    Log.log(string.format('Websocket.on_session_open sid(%d)', sid))
     if Gameclient.is_connect() then
         Gameclient.send_session_open(sid)
     else
@@ -21,7 +21,7 @@ function on_session_open(sid)
 end
 
 function on_session_close(sid)
-    print('Websocket.on_session_close', sid)
+    Log.log(string.format('Websocket.on_session_close sid(%d)', sid))
     if Gameclient.is_connect() then
         Gameclient.send_session_close(sid)
     else
