@@ -154,6 +154,7 @@ namespace Gatesrv
                 lua_pushlstring(Script::L, msgname, msgnamelen);
                 push_luamsgname(msgname, msgnamelen);
                 lua_pushlstring(Script::L, dataptr, datalen);
+                printf("aaaaaaa\n");
                 if (lua_pcall(Script::L, 5, 0, 0) != 0)
                 {
                     if (lua_isstring(Script::L, -1))
@@ -167,7 +168,7 @@ namespace Gatesrv
                 datalen -= 1;
 
                 unsigned short msgnamelen = *(unsigned short*)dataptr;
-                msgnamelen = ntohs(msgnamelen);
+                //msgnamelen = ntohs(msgnamelen);
                 dataptr += sizeof(unsigned short);
                 datalen -= sizeof(unsigned short);
 
@@ -177,7 +178,7 @@ namespace Gatesrv
 
                 char c = msgname[msgnamelen];
                 msgname[msgnamelen] = 0;
-                LOG_LOG("gatesrv recv a frame msgname %s msgnamelen %d datalen %d\n", msgname, msgnamelen, datalen);
+                LOG_LOG("gatesrv recv a frame from sid %d msgname %s msgnamelen %d datalen %d\n", sid, msgname, msgnamelen, datalen);
                 msgname[msgnamelen] = c;
 
 
@@ -310,7 +311,8 @@ namespace Gatesrv
        *(unsigned char*)buf = 0;
        buf += 1;
 
-       *(unsigned short*)buf = htons(msgnamelen);
+       //*(unsigned short*)buf = htons(msgnamelen);
+       *(unsigned short*)buf = msgnamelen;
        buf += 2;
 
        memcpy(buf, msgname, msgnamelen);

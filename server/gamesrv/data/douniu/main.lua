@@ -1,13 +1,13 @@
 module('Douniu', package.seeall)
 
 --斗牛场
-STATE_NULL = 1
-STATE_WAITING = 2
-STATE_FAPAI = 3
-STATE_QIANGZHUANG = 4
-STATE_XIAZHU = 5
-STATE_XUANPAI = 6
-STATE_JIESUAN = 7
+STATE_NULL = 1  --不够人时
+STATE_WAITING = 2 --等待
+--STATE_FAPAI = 3 --发牌
+STATE_QIANGZHUANG = 3 --抢庄
+STATE_XIAZHU = 4 --下注
+STATE_XUANPAI = 5 --选牌
+STATE_JIESUAN = 6 --结算
 
 MEMBER_OBSERVER = 1
 MEMBER_PLAYER = 2
@@ -207,7 +207,7 @@ end
 
 
 --随机进入房间
-function enter_room(acotr, type)
+function enter_room(actor, type)
     if actor.room then
         print('actor is already in other room')
         return
@@ -223,7 +223,7 @@ function enter_room(acotr, type)
             actor.room = room
             actor.douniu_player = player
             table.insert(room.player_list, player)
-            return true
+            return room 
         end
     end
     return false
@@ -278,6 +278,7 @@ enter_state_handler[STATE_WAITING] = function(room)
     end
 end
 
+--[[
 enter_state_handler[STATE_FAPAI] = function(room)
     --广播倒计时
     local countdown = DouniuConf.countdown[room.state]
@@ -295,15 +296,36 @@ enter_state_handler[STATE_FAPAI] = function(room)
     --发牌
     local player_list = room.player_list
     for _, player in pairs(player_list) do
-        if player.memger ~= MEMBER_OBSERVER then
+        if player.member ~= MEMBER_OBSERVER then
             player.cards = random_cards(room.card_list)
             send_fapai(player)
         end
     end
 end
+--]]
 
 enter_state_handler[STATE_QIANGZHUANG] = function(room)
-
+    --广播倒计时
+    local countdown = DouniuConf.countdown[room.state]
+    if countdown > 0 then
+        broadcast_cown_down(room, countdown)
+        --倒计时结束自动进入下一个状态
+        room.countdown = countdown
+    end
+    room.card_list = {
+        1,5,9, 13,17,21,25,29,33,37,41,45,49, 
+        2,6,10,14,18,22,26,30,34,38,42,46,50, 
+        3,7,11,15,19,23,27,31,35,39,43,47,51, 
+        4,8,12,16,20,24,28,32,36,40,44,48,52, 
+    }
+    --发牌
+    local player_list = room.player_list
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            player.cards = random_cards(room.card_list)
+            send_fapai(player)
+        end
+    end
 end
 
 enter_state_handler[STATE_XUANPAI] = function(room)
@@ -317,7 +339,7 @@ enter_state_handler[STATE_XUANPAI] = function(room)
     --告诉每个人有哪些牌
     local player_list = room.player_list
     for _, player in pairs(player_list) do
-        if player.memger ~= MEMBER_OBSERVER then
+        if player.member ~= MEMBER_OBSERVER then
             local msg = Pblua.msgnew('douniu.XUANPAI_R')
             local msg_cards = msg.cards
             for _, c in pairs(player.cards) do

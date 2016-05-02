@@ -3,9 +3,9 @@ DouniuConf = {
     --最大房间数
     max_room_count = 1,
     --倒数
-    countdown = {0, 
+    countdown = {
+    0, 
     3,--等待 
-    1,--发牌
     10,--抢庄
     10,--下注
     10,--选牌

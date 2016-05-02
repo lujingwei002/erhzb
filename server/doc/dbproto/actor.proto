@@ -7,4 +7,5 @@ message Actor
     optional int32 diamond = 3[default = 0];
     optional string headimg = 4[default = ''];
     optional string username = 5[default = ''];
+    optional int32 viplevel = 6[default = 0];
 } 

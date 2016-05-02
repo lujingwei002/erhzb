@@ -21,7 +21,7 @@ function GET(sid, uid)
     actordata.headimg = accountrow.headimg
     actordata.coin = actorrow.coin
     actordata.diamond = actorrow.diamond
-    actordata.username = actorrow.username
+    actordata.username = accountrow.username
 
     Gamesrv.post('Login.GET', sid, uid, actordata:tostring()) 
 end
@@ -29,7 +29,9 @@ end
 
 function SET(sid, uid, data)
     print('Login.SET', uid, data)
-    Sqlconn.command(string.format('replace into actor(uid, data) value (%d, "%s")', uid, Sqlconn.escape(data)))
+    local actordata = Pblua.msgnew('dbproto.Actor')
+    actordata:parse_from_string(data)
+    Sqlconn.command(string.format('replace into actor(uid, diamond, coin) value (%d, %d, %d)', uid, actordata.diamond, actordata.coin))
     Gamesrv.post('Login.SET', sid, uid) 
 end
 

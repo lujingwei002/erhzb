@@ -13,6 +13,7 @@ require('gatesrv.main')
 require('login.main')
 require('actor.actormgr')
 require('douniu.main')
+require('douniu.msg')
 require('config.douniuconf')
 
 --测试protobuf是确初始化

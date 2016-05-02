@@ -5,8 +5,16 @@ function MSG_ENTER(actor, msg)
     local type = msg.type
     local room = enter_room(actor, type)
     if not room then
+        local reply = Pblua.msgnew('douniu.ENTER_R')  
+        reply.errno = 1
+        reply.errstr = '进入房间失败'
+        Actor.post_msg(actor, msg)
         return
     end
+    local reply = Pblua.msgnew('douniu.ENTER_R')  
+    reply.errno = 0
+    Actor.post_msg(actor, msg)
+    
     broadcast_actor_enter(room, actor)
     send_room_info(actor, room)
 end
@@ -15,6 +23,7 @@ function MSG_EXIT(actor, msg)
     local room = actor.room
     if not room then
         print('actor is not in room now')
+        return
     end
     local find = false
     local player_list = room.player_list
@@ -27,15 +36,17 @@ function MSG_EXIT(actor, msg)
         end
     end
     if not find then
+        print('actor not found')
         return
     end
     broadcast_actor_exit(room, actor)
 end
 
 --广播玩家退出房间
-function broadcast_actor_enter(room, actor)
+function broadcast_actor_exit(room, actor)
+    print('broadcast_actor_exit')
     local actordata = actor.actordata
-    local msg = Pbclua.msgnew('douniu.ACTOR_EXIT_R')  
+    local msg = Pblua.msgnew('douniu.ACTOR_EXIT_R')  
     msg.uid = actordata.uid
     broadcast_msg(room, msg)
 end
@@ -44,7 +55,7 @@ end
 --广播玩家进入房间
 function broadcast_actor_enter(room, actor)
     local actordata = actor.actordata
-    local msg = Pbclua.msgnew('douniu.ACTOR_ENTER_R')  
+    local msg = Pblua.msgnew('douniu.ACTOR_ENTER_R')  
     msg.uid = actordata.uid
     msg.username = actordata.username
     msg.headimg = actordata.headimg
@@ -91,12 +102,13 @@ function send_room_info(actor, room)
         player_info.username = actordata.username
         player_info.headimg = actordata.headimg
         player_info.viplevel = actordata.viplevel
-        player_info.member = actordata.member
+        player_info.member = player.member
         local msg_cards = player_info.cards
         for _, c in pairs(player.cards) do
             msg_cards:add(c)
         end
     end
+    Actor.post_msg(actor, msg)
 end
 
 --抢庄

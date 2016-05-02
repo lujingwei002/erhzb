@@ -38,6 +38,11 @@ function LOGIN(sid, errno, uid)
         reply.uid = uid
         reply.errno = 4 
         Gatesrv.send_proto(sid, reply:msgname(), reply:tostring())
+
+        local last_sid = actor.sid
+        Actor.actor_session[sid] = actor
+        Actor.actor_session[last_sid] = nil
+        actor.sid = sid
         return
     end
     if temp_session[sid] and os.time() - temp_session[sid] < 10 then

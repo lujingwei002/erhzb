@@ -25,4 +25,6 @@ end
 
 function post_msg(actor, msg)
     Gatesrv.send_proto(actor.sid, msg:msgname(), msg:tostring())
+    print(msg:debug_string())
 end
+
