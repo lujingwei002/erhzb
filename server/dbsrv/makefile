@@ -1,4 +1,4 @@
-INCLUDE_DIRS =-I. -I../rd/protobuf/src -I../3rd/lua/src -I../3rd/mysql/include -I../3rd/hiredis -I../3rd/tolua++ -I../srvlib
+INCLUDE_DIRS =-I. -I../3rd/protobuf/src -I../3rd/lua/src -I../3rd/mysql/include -I../3rd/hiredis -I../3rd/tolua++ -I../srvlib
 
 LIB_DIRS =
 
