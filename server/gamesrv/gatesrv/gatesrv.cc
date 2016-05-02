@@ -154,7 +154,6 @@ namespace Gatesrv
                 lua_pushlstring(Script::L, msgname, msgnamelen);
                 push_luamsgname(msgname, msgnamelen);
                 lua_pushlstring(Script::L, dataptr, datalen);
-                printf("aaaaaaa\n");
                 if (lua_pcall(Script::L, 5, 0, 0) != 0)
                 {
                     if (lua_isstring(Script::L, -1))
@@ -237,14 +236,22 @@ namespace Gatesrv
                 break;
             }
             Recvbuf::wskip(sockfd, ir);
-            char* rptr = Recvbuf::getrptr(sockfd);
-            int datalen = Recvbuf::datalen(sockfd);
 
-            int packetlen = _decode_packet(sockfd, rptr, datalen);
-            if (packetlen > 0)
+
+            for(;;)
             {
-                Recvbuf::rskip(sockfd, packetlen);
-                Recvbuf::buf2line(sockfd);
+                char* rptr = Recvbuf::getrptr(sockfd);
+                int datalen = Recvbuf::datalen(sockfd);
+                int packetlen = _decode_packet(sockfd, rptr, datalen);
+                if (packetlen == 0)
+                {
+                    Recvbuf::buf2line(sockfd);
+                    break;
+                }
+                else if (packetlen > 0)
+                {
+                    Recvbuf::rskip(sockfd, packetlen);
+                }
             }
             break;
         }

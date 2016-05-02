@@ -149,14 +149,20 @@ namespace Dbclient
                 break;
             }
             Recvbuf::wskip(sockfd, ir);
-            char* rptr = Recvbuf::getrptr(sockfd);
-            int datalen = Recvbuf::datalen(sockfd);
-
-            int packetlen = _decode_packet(sockfd, rptr, datalen);
-            if (packetlen > 0)
+            for(;;)
             {
-                Recvbuf::rskip(sockfd, packetlen);
-                Recvbuf::buf2line(sockfd);
+                char* rptr = Recvbuf::getrptr(sockfd);
+                int datalen = Recvbuf::datalen(sockfd);
+                int packetlen = _decode_packet(sockfd, rptr, datalen);
+                if (packetlen == 0)
+                {
+                    Recvbuf::buf2line(sockfd);
+                    break;
+                }
+                else if (packetlen > 0)
+                {
+                    Recvbuf::rskip(sockfd, packetlen);
+                }
             }
             break;
         }

@@ -66,7 +66,7 @@ namespace Gameclient
         char* body = (char*)data + sizeof(unsigned int);
         unsigned short bodylen = datalen - sizeof(unsigned int);
 
-        LOG_DEBUG("gameclient recv a frame sid %d data %s", sid, body);
+        LOG_DEBUG("gameclient recv a frame sid %d datalen %d", sid, datalen);
         //分发到lua处理
         static char funcname[64] = "Gameclient.dispatch";
         Script::pushluafunction(funcname);
@@ -119,14 +119,21 @@ namespace Gameclient
                 break;
             }
             Recvbuf::wskip(sockfd, ir);
-            char* rptr = Recvbuf::getrptr(sockfd);
-            int datalen = Recvbuf::datalen(sockfd);
 
-            int packetlen = _decode_packet(sockfd, rptr, datalen);
-            if (packetlen > 0)
+            for (;;)
             {
-                Recvbuf::rskip(sockfd, packetlen);
-                Recvbuf::buf2line(sockfd);
+                char* rptr = Recvbuf::getrptr(sockfd);
+                int datalen = Recvbuf::datalen(sockfd);
+                int packetlen = _decode_packet(sockfd, rptr, datalen);
+                if (packetlen == 0)
+                {
+                    Recvbuf::buf2line(sockfd);
+                    break;
+                }
+                else if (packetlen > 0)
+                {
+                    Recvbuf::rskip(sockfd, packetlen);
+                }
             }
             break;
         }

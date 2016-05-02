@@ -13,7 +13,7 @@ function MSG_ENTER(actor, msg)
     end
     local reply = Pblua.msgnew('douniu.ENTER_R')  
     reply.errno = 0
-    Actor.post_msg(actor, msg)
+    Actor.post_msg(actor, reply)
     
     broadcast_actor_enter(room, actor)
     send_room_info(actor, room)
@@ -39,6 +39,8 @@ function MSG_EXIT(actor, msg)
         print('actor not found')
         return
     end
+    actor.room = nil
+    actor.douniu_player = nil
     broadcast_actor_exit(room, actor)
 end
 
