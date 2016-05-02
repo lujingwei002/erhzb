@@ -1,5 +1,5 @@
 
-DounieConf = {
+DouniuConf = {
     --最大房间数
     max_room_count = 1,
     --倒数

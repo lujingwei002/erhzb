@@ -1,4 +1,4 @@
-module('Dounie', package.seeall)
+module('Douniu', package.seeall)
 
 --进入房间
 function MSG_ENTER(actor, msg)

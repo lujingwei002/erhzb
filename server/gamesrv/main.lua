@@ -13,7 +13,7 @@ require('gatesrv.main')
 require('login.main')
 require('actor.actormgr')
 require('douniu.main')
-require('config.dounieconf')
+require('config.douniuconf')
 
 --测试protobuf是确初始化
 Pblua.mappath('dbproto', '../doc/dbproto')
@@ -21,6 +21,7 @@ Pblua.mappath('proto',   '../doc/proto')
 Pblua.import('dbproto/actor.proto')
 Pblua.import('proto/login.proto')
 Pblua.import('proto/gatesrv.proto')
+Pblua.import('proto/douniu.proto')
 local user = Pblua.msgnew('dbproto.Actor')
 assert(user)
 
@@ -32,4 +33,4 @@ Gatesrv.listen('127.0.0.1', 8081)
 Dbclient.connect('127.0.0.1', 8082)
 
 
-Dounie.main()
+Douniu.main()

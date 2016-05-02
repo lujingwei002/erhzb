@@ -31,7 +31,7 @@ message ENTER
 message ENTER_R
 {
     //非0就是表示失败
-    optional int32 errno = 2[defaut = 0];
+    optional int32 errno = 2[default = 0];
     optional string errstr = 3[default = ''];
 }
 
@@ -190,5 +190,5 @@ message COUNTDOWN
     //房间状态
     optional int32 state  = 1[default = 0];
     //倒计时
-    optional int32 coutndown = 2[defaut = 0];
+    optional int32 coutndown = 2[default = 0];
 }

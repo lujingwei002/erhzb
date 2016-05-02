@@ -1,4 +1,4 @@
-module('Dounie', package.seeall)
+module('Douniu', package.seeall)
 
 --斗牛场
 STATE_NULL = 1
@@ -28,9 +28,9 @@ end
 
 --游戏开始时初始化房间列表
 function init_room_mgr()
-    local max_room_count = DounieConf.max_room_count
+    local max_room_count = DouniuConf.max_room_count
     for i = 0, max_room_count do
-        for type, type_conf in pairs(DounieConf.room_type) do
+        for type, type_conf in pairs(DouniuConf.room_type) do
             create_room(type)
         end
     end
@@ -38,7 +38,7 @@ end
 
 --创建房间
 function create_room(type)
-    local type_conf = DounieConf.room_type[type]
+    local type_conf = DouniuConf.room_type[type]
     local room = 
     {
         state = STATE_NULL,  
@@ -214,7 +214,7 @@ function enter_room(acotr, type)
     end
     local room_list = room_mgr[type]
     for _, room in pairs(room_list) do
-        if room.type == type and #room.player_list < DounieConf.max_room_actor then
+        if room.type == type and #room.player_list < DouniuConf.max_room_actor then
             local player = {
                 actor = actor,
                 member = MEMBER_OBSERVER,
@@ -270,7 +270,7 @@ end
 
 enter_state_handler[STATE_WAITING] = function(room)
     --广播倒计时
-    local countdown = DounieConf.countdown[room.state]
+    local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
         broadcast_cown_down(room, countdown)
         --倒计时结束自动进入下一个状态
@@ -280,7 +280,7 @@ end
 
 enter_state_handler[STATE_FAPAI] = function(room)
     --广播倒计时
-    local countdown = DounieConf.countdown[room.state]
+    local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
         broadcast_cown_down(room, countdown)
         --倒计时结束自动进入下一个状态
@@ -308,7 +308,7 @@ end
 
 enter_state_handler[STATE_XUANPAI] = function(room)
     --开始倒数
-    local countdown = DounieConf.countdown[room.state]
+    local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
         broadcast_cown_down(room, countdown)
         --倒计时结束自动进入下一个状态
@@ -345,7 +345,7 @@ enter_state_handler[STATE_XIAZHU] = function(room)
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_OBSERVER then
             local coin = player.actor.coin
-            for idx, ratio_list in pairs(DounieConf.room_type[room.type].ratio) do
+            for idx, ratio_list in pairs(DouniuConf.room_type[room.type].ratio) do
                 if coin >= ratio_list[1] then
                     player.ratio_list = radio_list
                     player.ratio_idx = idx
