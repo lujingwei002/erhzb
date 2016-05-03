@@ -239,11 +239,13 @@ end
 function exit_room(actor)
     local room = actor.room
     if not room then
+        print('not in room')
         return
     end
     local player_list = room.player_list
     local player = actor.douniu_player
     if not player then
+        print('not douniu player')
         return
     end
     player_list[player.pos] = nil
@@ -252,14 +254,16 @@ function exit_room(actor)
     room.actor_count = room.actor_count - 1
     broadcast_actor_exit(room, actor)
     --没有人玩了
-    if actor_count == 1 then
+    print('ccc', actor_count)
+    if room.actor_count == 1 then
         if room.state >= STATE_QIANGZHUANG and room.state < STATE_JIESUAN  then
             room.state = STATE_XUANPAI
             room.countdown = 0
             goto_next_state(room)
         end
-    elseif actor_count == 0 then
-        room.state = STATE_NULL
+    elseif room.actor_count == 0 then
+        room.state = 0
+        goto_next_state(room)
         room.countdown = nil
     end
 end
