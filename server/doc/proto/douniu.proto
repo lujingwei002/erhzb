@@ -46,6 +46,8 @@ message ACTOR_ENTER_R
     optional string headimg = 3[default = ''];
     //vip等级
     optional int32 viplevel = 4[default = 0];
+    //座位 从1开始
+    optional int32 pos = 5[default = 0];
 }
 
 //退出房间
@@ -64,6 +66,8 @@ message ENTER_STATE_R
 {
     //状态的枚举值
     optional int32 state = 1[default = 0];
+    //倒计时
+    optional int32 countdown = 2[default = 0];
 }
 
 message PlayerInfo 
@@ -80,6 +84,8 @@ message PlayerInfo
     repeated int32 cards = 6;
     //1.旁观者 2.玩家 3.玩家（庄家）
     optional int32 member = 7[default = 0];
+    //座位 从1开始
+    optional int32 pos = 5[default = 0];
 }
 
 message ROOM_INFO_R
@@ -140,19 +146,24 @@ message XIAZHU_R
     optional int32 ratio = 2[default = 0];
 }
 
-//选牌
-message XUANPAI 
-{
-    //牌
-    repeated int32 cards = 1;
-}
-
 //选牌前会告诉你，你有哪些牌
-message XUANPAI_R
+message PAI_LIST
 {
     repeated int32 cards = 1;
     //最好的牌型, 参考上面的定义
     optional int32 best_paixing = 2[default = 0];
+}
+
+//选牌
+message XUANPAI 
+{
+    //牌, 填5张牌，
+    repeated int32 cards = 1;
+}
+
+//提示
+message XUANPAI_TIP
+{
 }
 
 //翻牌
@@ -174,21 +185,17 @@ message JieSuanInfo
     //得分
     optional int32 score = 3[default = 0];
     //牌型
-    optional int32 result = 4[default = 0];
+    optional int32 paixing = 4[default = 0];
+    //是否庄家
+    optional int32 is_master = 5[default = 0];
+    //是否胜利
+    optional int32 is_winner = 6[default = 0];
 }
 
 //结算
-message JIESUAN
+message JIESUAN_R
 {
     repeated JieSuanInfo infos = 1;
 }
 
 
-//倒计时
-message COUNTDOWN 
-{
-    //房间状态
-    optional int32 state  = 1[default = 0];
-    //倒计时
-    optional int32 countdown = 2[default = 0];
-}
