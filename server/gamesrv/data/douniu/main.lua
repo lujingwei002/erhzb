@@ -213,6 +213,10 @@ function enter_room(actor, type)
         return
     end
     local room_list = room_mgr[type]
+    if not room_list then
+        print('room type is not exists')
+        return
+    end
     for _, room in pairs(room_list) do
         if room.type == type and #room.player_list < DouniuConf.max_room_actor then
             local player = {
@@ -244,11 +248,12 @@ end
 function room_update(room)
     --倒计时
     if room.countdown then
+        print('room_update', room.countdown)
         --减1秒
         room.countdown = room.countdown - 1
         if room.countdown <= 0 then
-            goto_next_state(room)
             room.countdown = nil
+            goto_next_state(room)
         end
     end
 
@@ -261,7 +266,7 @@ end
 
 --如果够人了就开始游戏
 update_state_handler[STATE_NULL] = function(room)
-    if #room.player_list < 2 then
+    if #room.player_list < 1 then
         return
     end
     --下一个状态
@@ -272,9 +277,14 @@ enter_state_handler[STATE_WAITING] = function(room)
     --广播倒计时
     local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
-        broadcast_cown_down(room, countdown)
+        broadcast_cowndown(room, countdown)
         --倒计时结束自动进入下一个状态
         room.countdown = countdown
+    end
+    --开始游戏
+    local player_list = room.player_list
+    for _, player in pairs(player_list) do
+        player.member = MEMBER_PLAYER
     end
 end
 
@@ -283,7 +293,7 @@ enter_state_handler[STATE_FAPAI] = function(room)
     --广播倒计时
     local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
-        broadcast_cown_down(room, countdown)
+        broadcast_cowndown(room, countdown)
         --倒计时结束自动进入下一个状态
         room.countdown = countdown
     end
@@ -305,10 +315,11 @@ end
 --]]
 
 enter_state_handler[STATE_QIANGZHUANG] = function(room)
+    print('enter qiangzhuang', room.state)
     --广播倒计时
     local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
-        broadcast_cown_down(room, countdown)
+        broadcast_cowndown(room, countdown)
         --倒计时结束自动进入下一个状态
         room.countdown = countdown
     end
@@ -332,7 +343,7 @@ enter_state_handler[STATE_XUANPAI] = function(room)
     --开始倒数
     local countdown = DouniuConf.countdown[room.state]
     if countdown > 0 then
-        broadcast_cown_down(room, countdown)
+        broadcast_cowndown(room, countdown)
         --倒计时结束自动进入下一个状态
         room.countdown = countdown
     end
@@ -351,6 +362,11 @@ enter_state_handler[STATE_XUANPAI] = function(room)
     end
 end
 
+
+exit_state_handler[STATE_XUANPAI] = function(room)
+
+end
+
 enter_state_handler[STATE_JIESUAN] = function(room)
 
 end
@@ -362,25 +378,36 @@ end
 
 
 enter_state_handler[STATE_XIAZHU] = function(room)
+    --开始倒数
+    local countdown = DouniuConf.countdown[room.state]
+    if countdown > 0 then
+        broadcast_cowndown(room, countdown)
+        --倒计时结束自动进入下一个状态
+        room.countdown = countdown
+    end
     --要钱当前的钱数量，决定可以下的倍数
     local player_list = room.player_list
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_OBSERVER then
-            local coin = player.actor.coin
+            local actordata = player.actor.actordata
+            local coin = actordata.coin
             for idx, ratio_list in pairs(DouniuConf.room_type[room.type].ratio) do
                 if coin >= ratio_list[1] then
-                    player.ratio_list = radio_list
+                    player.ratio_list = ratio_list
                     player.ratio_idx = idx
+                    print('下发下注数', player.actor.uid, player.ratio_idx)
                 end
             end
         end
     end
-    --下发玩家可以下的倍数
+    --下发玩家可以下的倍数(庄是不会下的)
     local master_player = room.master_player
     for _, player in pairs(player_list) do
-        if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
+        --todo
+        --if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
+        if player.member ~= MEMBER_OBSERVER then
             local msg = Pblua.msgnew('douniu.XIAZHU_LIST')
-            local ratio_list = player.radio_list
+            local ratio_list = player.ratio_list
             --如果庄倍数比你小
             if master_player.ratio_idx > player.ratio_idx then
                 ratio_list = master_player.ratio_list
@@ -397,14 +424,16 @@ exit_state_handler[STATE_XIAZHU] = function(room)
     --时间到了，选一个最小的注数
     local player_list = room.player_list
     for _, player in pairs(player_list) do
-        if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
+        --todo
+        --if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
+        if player.member ~= MEMBER_OBSERVER then
             if not player.recv_xiazhu then
                 player.recv_xiazhu = player.ratio_list[2]
                 --广播出去
                 local reply = Pblua.msgnew('douniu.XIAZHU_R')
                 reply.uid = player.actor.uid
                 reply.ratio = player.recv_xiazhu
-                broadcast_msg(msg)
+                broadcast_msg(room, reply)
             end
         end
     end
@@ -438,6 +467,7 @@ end
 
 --随机一个庄
 function random_quang(room)
+    print('随机一个庄')
     --候选人
     local candidate = {}
     local player_list = room.player_list

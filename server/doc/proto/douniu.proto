@@ -14,8 +14,8 @@ package douniu;
 12 4炸 
 11 5花牛
 10 牛牛
-9 牛牛
-..
+9 牛9
+8 牛8
 ..
 ..
 0 没牛
@@ -190,5 +190,5 @@ message COUNTDOWN
     //房间状态
     optional int32 state  = 1[default = 0];
     //倒计时
-    optional int32 coutndown = 2[default = 0];
+    optional int32 countdown = 2[default = 0];
 }

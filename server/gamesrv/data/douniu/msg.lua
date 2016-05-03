@@ -8,7 +8,7 @@ function MSG_ENTER(actor, msg)
         local reply = Pblua.msgnew('douniu.ENTER_R')  
         reply.errno = 1
         reply.errstr = '进入房间失败'
-        Actor.post_msg(actor, msg)
+        Actor.post_msg(actor, reply)
         return
     end
     local reply = Pblua.msgnew('douniu.ENTER_R')  
@@ -74,8 +74,8 @@ function broadcast_msg(room, msg)
 end
 
 --广播倒计时
-function broadcast_cown_down(room, countdown)
-    local msg = Pblua.msgnew('douniu.ROOM_INFO_R')
+function broadcast_cowndown(room, countdown)
+    local msg = Pblua.msgnew('douniu.COUNTDOWN')
     msg.state = room.state
     msg.countdown = countdown
     broadcast_msg(room, msg)
@@ -85,7 +85,7 @@ function send_fapai(player)
     local msg = Pblua.msgnew('douniu.FAPAI_R')
     local msg_cards = msg.cards
     for i = 1, 3 do
-        msg_cards:add(player.cards[i])
+        msg_cards:add(card_val[player.cards[i]])
     end
     Actor.post_msg(player.actor, msg)
 end
@@ -156,7 +156,7 @@ end
 function broadcast_zhuang_result(room, uid)
     local msg = Pblua.msgnew('douniu.ZHUANG_R')
     msg.uid = uid
-    broadcast_msg(msg)
+    broadcast_msg(room, msg)
 end
 
 
