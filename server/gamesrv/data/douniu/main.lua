@@ -427,7 +427,7 @@ exit_state_handler[STATE_XUANPAI] = function(room)
     local sort_player_list = {}
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_OBSERVER then
-            table.insert(sort_player_list) 
+            table.insert(sort_player_list, player) 
         end
     end
     --根据分数排序，算出赢的玩家
