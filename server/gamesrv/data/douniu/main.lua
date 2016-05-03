@@ -472,6 +472,18 @@ enter_state_handler[STATE_JIESUAN] = function(room)
 end
 
 exit_state_handler[STATE_QIANGZHUANG] = function(room)
+    --是否全部人都已决定了
+    local player_list = room.player_list
+    local is_all_recv = true
+    for _, player in pairs(player_list) do
+        if not player.recv_qiangzhuang then
+            is_all_recv = false
+            break
+        end
+    end
+    if is_all_recv then
+        return
+    end
     --时间到了，随机一个庄吧
     random_quang(room)
 end

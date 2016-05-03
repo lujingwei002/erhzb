@@ -84,6 +84,7 @@ function send_room_info(actor, room)
         player_info.viplevel = actordata.viplevel
         player_info.member = player.member
         player_info.pos = player.pos
+        player_info.coin = actordata.coin
         local msg_cards = player_info.cards
         for _, c in pairs(player.cards) do
             msg_cards:add(c)
@@ -113,7 +114,7 @@ function MSG_QIANGZHUANG(actor, msg)
     local reply = Pblua.msgnew('douniu.QIANGZHUANG_R')
     reply.uid = actor.uid
     reply.is_master = msg.is_master
-    broadcast_msg(msg)
+    broadcast_msg(room, reply)
     --是否全部人都已决定了
     local player_list = room.player_list
     local is_all_recv = true
@@ -173,7 +174,7 @@ function MSG_XIAZHU(actor, msg)
     local reply = Pblua.msgnew('douniu.XIAZHU_R')
     reply.uid = actor.uid
     reply.ratio = msg.ratio
-    broadcast_msg(msg)
+    broadcast_msg(room, reply)
 
     --是否全部人都已决定了
     local player_list = room.player_list
@@ -221,7 +222,7 @@ function MSG_XUANPAI_TIP(actor, msg)
     for _, p in pairs(cards_set) do
         reply.cards:add(card_val[p])
     end
-    broadcast_msg(msg)
+    broadcast_msg(room, msg)
 
     --是否全部人都已决定了
     local player_list = room.player_list
@@ -276,7 +277,7 @@ function MSG_XUANPAI(actor, msg)
     reply.uid = actor.uid
     reply.paixing = paixing
     reply.cards:copy_from(msg.cards)
-    broadcast_msg(msg)
+    broadcast_msg(room, msg)
 
     --是否全部人都已决定了
     local player_list = room.player_list

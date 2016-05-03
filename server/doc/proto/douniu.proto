@@ -88,6 +88,7 @@ message PlayerInfo
     optional int32 member = 7[default = 0];
     //座位 从1开始
     optional int32 pos = 5[default = 0];
+    optional int32 coin = 8[default = 0];
 }
 
 message ROOM_INFO_R
