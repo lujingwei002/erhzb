@@ -40,6 +40,7 @@ function on_session_close(sid)
     if not actor then
         return
     end
+    Douniu.on_actor_exit(actor)
     local actordata = actor.actordata
     Dbclient.post('Login.SET', sid, actor.uid, actordata:tostring())
 end

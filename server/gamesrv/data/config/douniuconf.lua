@@ -17,6 +17,7 @@ DouniuConf = {
     --房间类型
     room_type = {
         {
+            max_actor = 5,
             --底分
             min_score = 100,
             --某个分数可以选择的倍数
@@ -26,6 +27,7 @@ DouniuConf = {
             },
         },
         {
+            max_actor = 5,
             min_score = 300,
             ratio = {
                 {10000, 10, 30, 50},

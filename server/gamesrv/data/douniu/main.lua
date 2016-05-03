@@ -26,6 +26,11 @@ function main()
     init_room_mgr()
 end
 
+function on_actor_exit(actor)
+    print('on_actor_exit', actor.uid)
+    exit_room(actor)
+end
+
 --游戏开始时初始化房间列表
 function init_room_mgr()
     local max_room_count = DouniuConf.max_room_count
@@ -42,10 +47,12 @@ function create_room(type)
     local room = 
     {
         state = STATE_NULL,  
+        max_actor = type_conf.max_actor,
         min_score = type_conf.min_score,
         type = type,
         --玩家列表
         player_list = {},
+        actor_count = 0,
     }
     if not room_mgr[type] then
         room_mgr[type] = {}
@@ -92,7 +99,7 @@ function test()
     for i = 1, #cards do
         print(card_val[cards[i]])
     end
-    local val, cards = cal_card_paixing(cards)
+    local val, cards = cal_best_card_paixing(cards)
     print('va', val)
     print('cards')
     for i = 1, #cards do
@@ -100,11 +107,35 @@ function test()
     end
 end
 
+function cal_card_paixing(cards)
+    local num_list = {card_num[cards[1]], card_num[cards[2]],card_num[cards[3]],card_num[cards[4]],card_num[cards[5]]}
+    local score_list = {card_score[cards[1]], card_score[cards[2]],card_score[cards[3]],card_score[cards[4]],card_score[cards[5]],}
+
+    --计算出最大的一张牌
+    local max_val = 0
+    for i = 1, #cards do
+        if max_val < cards[i] then
+            max_val = cards[i]
+        end
+    end
+    local total = score_list[1] + score_list[2] + score_list[3]
+    if math.mod(total, 10) ~= 0 then
+        return 0
+    end
+    local total = score_list[4] + score_list[5]
+    local paival = math.mod(total, 10)
+    if paival == 0 then paival = 10 end
+
+    return paival, paival * 100 + max_val
+end
+
+
+
 --计算牌的分数
 --5小牛 》4条 》5花牛 > 牛牛　》牛九 。。。。 牛1 》 没牛
 --5小牛 手上的牌小于5点，肯总各小于10点
 --5花牛 手上的牌全是JQK
-function cal_card_paixing(cards)
+function cal_best_card_paixing(cards)
     local num_list = {card_num[cards[1]], card_num[cards[2]],card_num[cards[3]],card_num[cards[4]],card_num[cards[5]]}
     local score_list = {card_score[cards[1]], card_score[cards[2]],card_score[cards[3]],card_score[cards[4]],card_score[cards[5]],}
 
@@ -205,6 +236,33 @@ function random_cards(card_list)
     return cards
 end
 
+function exit_room(actor)
+    local room = actor.room
+    if not room then
+        return
+    end
+    local player_list = room.player_list
+    local player = actor.douniu_player
+    if not player then
+        return
+    end
+    player_list[player.pos] = nil
+    actor.room = nil
+    actor.douniu_player = nil
+    room.actor_count = room.actor_count - 1
+    broadcast_actor_exit(room, actor)
+    --没有人玩了
+    if actor_count == 1 then
+        if room.state >= STATE_QIANGZHUANG and room.state < STATE_JIESUAN  then
+            room.state = STATE_XUANPAI
+            room.countdown = 0
+            goto_next_state(room)
+        end
+    elseif actor_count == 0 then
+        room.state = STATE_NULL
+        room.countdown = nil
+    end
+end
 
 --随机进入房间
 function enter_room(actor, type)
@@ -218,16 +276,22 @@ function enter_room(actor, type)
         return
     end
     for _, room in pairs(room_list) do
-        if room.type == type and #room.player_list < DouniuConf.max_room_actor then
+        if room.type == type and room.actor_count < room.max_actor then
             local player = {
                 actor = actor,
                 member = MEMBER_OBSERVER,
                 cards = {},
             }
-            actor.room = room
-            actor.douniu_player = player
-            table.insert(room.player_list, player)
-            return room 
+            for i = 1, room.max_actor do
+                if not room.player_list[i] then
+                    player.pos = i
+                    room.player_list[i] = player
+                    actor.room = room
+                    actor.douniu_player = player
+                    room.actor_count = room.actor_count + 1
+                    return room
+                end
+            end
         end
     end
     return false
@@ -266,7 +330,7 @@ end
 
 --如果够人了就开始游戏
 update_state_handler[STATE_NULL] = function(room)
-    if #room.player_list < 1 then
+    if room.actor_count < 1 then
         return
     end
     --下一个状态
@@ -274,14 +338,7 @@ update_state_handler[STATE_NULL] = function(room)
 end
 
 enter_state_handler[STATE_WAITING] = function(room)
-    --广播倒计时
-    local countdown = DouniuConf.countdown[room.state]
-    if countdown > 0 then
-        broadcast_cowndown(room, countdown)
-        --倒计时结束自动进入下一个状态
-        room.countdown = countdown
-    end
-    --开始游戏
+        --开始游戏
     local player_list = room.player_list
     for _, player in pairs(player_list) do
         player.member = MEMBER_PLAYER
@@ -290,13 +347,6 @@ end
 
 --[[
 enter_state_handler[STATE_FAPAI] = function(room)
-    --广播倒计时
-    local countdown = DouniuConf.countdown[room.state]
-    if countdown > 0 then
-        broadcast_cowndown(room, countdown)
-        --倒计时结束自动进入下一个状态
-        room.countdown = countdown
-    end
     room.card_list = {
         1,5,9, 13,17,21,25,29,33,37,41,45,49, 
         2,6,10,14,18,22,26,30,34,38,42,46,50, 
@@ -316,13 +366,6 @@ end
 
 enter_state_handler[STATE_QIANGZHUANG] = function(room)
     print('enter qiangzhuang', room.state)
-    --广播倒计时
-    local countdown = DouniuConf.countdown[room.state]
-    if countdown > 0 then
-        broadcast_cowndown(room, countdown)
-        --倒计时结束自动进入下一个状态
-        room.countdown = countdown
-    end
     room.card_list = {
         1,5,9, 13,17,21,25,29,33,37,41,45,49, 
         2,6,10,14,18,22,26,30,34,38,42,46,50, 
@@ -340,35 +383,88 @@ enter_state_handler[STATE_QIANGZHUANG] = function(room)
 end
 
 enter_state_handler[STATE_XUANPAI] = function(room)
-    --开始倒数
-    local countdown = DouniuConf.countdown[room.state]
-    if countdown > 0 then
-        broadcast_cowndown(room, countdown)
-        --倒计时结束自动进入下一个状态
-        room.countdown = countdown
-    end
     --告诉每个人有哪些牌
     local player_list = room.player_list
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_OBSERVER then
-            local msg = Pblua.msgnew('douniu.XUANPAI_R')
+            local msg = Pblua.msgnew('douniu.PAI_LIST')
             local msg_cards = msg.cards
             for _, c in pairs(player.cards) do
                 msg_cards:add(card_val[c])
             end
-            msg.best_paixing, _, _ = cal_card_paixing(player.cards)
+            msg.best_paixing, _, _ = cal_best_card_paixing(player.cards)
             Actor.post_msg(player.actor, msg)
         end
     end
 end
 
-
 exit_state_handler[STATE_XUANPAI] = function(room)
-
+    --时间到了，没有选牌的都是没牛
+    local player_list = room.player_list
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            if not player.recv_xuanpai then
+                --牌型
+                player.paixing = 0
+                --牌型分数
+                player.paival = 0
+                --广播出去
+                local reply = Pblua.msgnew('douniu.FANPAI_R')
+                reply.uid = player.actor.uid
+                reply.paixing = 0
+                local msg_cards = reply.cards
+                for i = 1, #player.cards do
+                    msg_cards:add(card_val[player.cards[i]])
+                end
+                broadcast_msg(room, reply)
+            end
+        end
+    end
+    local sort_player_list = {}
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            table.insert(sort_player_list) 
+        end
+    end
+    --根据分数排序，算出赢的玩家
+    table.sort(sort_player_list, function(a, b)
+        return a.paival> b.paival
+    end)
+    local win_player = sort_player_list[1]
+    win_player.is_winner = true
+    room.win_player = win_player
 end
 
 enter_state_handler[STATE_JIESUAN] = function(room)
+    --结算
+    local player_list = room.player_list
+    local total_score = 0
+    for _, player in pairs(player_list) do
+        if not player.is_winner and player.member ~= MEMBER_OBSERVER then
+            player.score = -room.min_score * player.recv_xiazhu
+            total_score = total_score + player.score
+        end
+    end
+    room.win_player.score = total_score
 
+    --下发结算信息
+    local reply = Pblua.msgnew('douniu.JIESUAN_R')
+    local msg_infos = reply.infos
+    local player_list = room.player_list
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            local info = msg_infos:add()
+            info.uid = player.actor.uid
+            info.ratio = player.recv_xiazhu
+            info.paixing = player.paixing
+            info.score = player.score
+            info.is_winner = player.is_winner and 1 or 0
+            if player.member == MEMBER_MASTER then
+                info.is_master = 1
+            end
+        end
+    end
+    broadcast_msg(room, reply)
 end
 
 exit_state_handler[STATE_QIANGZHUANG] = function(room)
@@ -378,13 +474,6 @@ end
 
 
 enter_state_handler[STATE_XIAZHU] = function(room)
-    --开始倒数
-    local countdown = DouniuConf.countdown[room.state]
-    if countdown > 0 then
-        broadcast_cowndown(room, countdown)
-        --倒计时结束自动进入下一个状态
-        room.countdown = countdown
-    end
     --要钱当前的钱数量，决定可以下的倍数
     local player_list = room.player_list
     for _, player in pairs(player_list) do
@@ -453,8 +542,19 @@ function goto_next_state(room)
     end
 
     room.state = room.state + 1
+    if room.state > STATE_JIESUAN then
+        room.state = STATE_NULL
+    end
+
     local msg = Pblua.msgnew('douniu.ENTER_STATE_R')
     msg.state = room.state
+    --广播倒计时
+    local countdown = DouniuConf.countdown[room.state]
+    if countdown > 0 then
+        --倒计时结束自动进入下一个状态
+        room.countdown = countdown
+        msg.countdown = countdown
+    end
     broadcast_msg(room, msg)
 
     --进入下一个状态

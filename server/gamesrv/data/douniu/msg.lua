@@ -25,23 +25,7 @@ function MSG_EXIT(actor, msg)
         print('actor is not in room now')
         return
     end
-    local find = false
-    local player_list = room.player_list
-    for idx, player in pairs(player_list) do
-        if player.actor == actor then
-            player_list[idx] = player_list[#player_list]
-            player_list[#player_list] = nil
-            find = true
-            break
-        end
-    end
-    if not find then
-        print('actor not found')
-        return
-    end
-    actor.room = nil
-    actor.douniu_player = nil
-    broadcast_actor_exit(room, actor)
+    exit_room(actor)
 end
 
 --广播玩家退出房间
@@ -62,6 +46,7 @@ function broadcast_actor_enter(room, actor)
     msg.username = actordata.username
     msg.headimg = actordata.headimg
     msg.viplevel = actordata.viplevel
+    msg.pos = actor.douniu_player.pos
     broadcast_msg(room, msg)
 end
 
@@ -73,13 +58,6 @@ function broadcast_msg(room, msg)
     end
 end
 
---广播倒计时
-function broadcast_cowndown(room, countdown)
-    local msg = Pblua.msgnew('douniu.COUNTDOWN')
-    msg.state = room.state
-    msg.countdown = countdown
-    broadcast_msg(room, msg)
-end
 
 function send_fapai(player)
     local msg = Pblua.msgnew('douniu.FAPAI_R')
@@ -105,6 +83,7 @@ function send_room_info(actor, room)
         player_info.headimg = actordata.headimg
         player_info.viplevel = actordata.viplevel
         player_info.member = player.member
+        player_info.pos = player.pos
         local msg_cards = player_info.cards
         for _, c in pairs(player.cards) do
             msg_cards:add(c)
@@ -212,3 +191,108 @@ function MSG_XIAZHU(actor, msg)
     end
     goto_next_state(room)
 end
+
+--提示
+function MSG_XUANPAI_TIP(actor, msg)
+    local room = actor.room
+    if not room then
+        --不在房间
+        return
+    end
+    if room.state ~= STATE_XUANPAI then
+        --状态不对
+        return
+    end
+    local player = actor.douniu_player
+    if player.recv_xuanpai then
+        --已经选过牌了
+        return
+    end
+
+    player.recv_xuanpai = true
+    local best_paixing, paival, cards_set = cal_best_card_paixing(player.cards)
+    player.paixing = best_paixing
+    player.paival = paival 
+
+    --广播出去
+    local reply = Pblua.msgnew('douniu.FANPAI_R')
+    reply.uid = actor.uid
+    reply.paixing = paixing
+    for _, p in pairs(cards_set) do
+        reply.cards:add(card_val[p])
+    end
+    broadcast_msg(msg)
+
+    --是否全部人都已决定了
+    local player_list = room.player_list
+    local is_all_recv = true
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            if not player.recv_xuanpai then
+                is_all_recv = false
+                break
+            end
+        end
+    end
+    if not is_all_recv then
+        return
+    end
+    goto_next_state(room)
+end
+
+--选牌
+function MSG_XUANPAI(actor, msg)
+    local room = actor.room
+    if not room then
+        --不在房间
+        return
+    end
+    if room.state ~= STATE_XUANPAI then
+        --状态不对
+        return
+    end
+    local player = actor.douniu_player
+    if player.recv_xuanpai then
+        --已经选过牌了
+        return
+    end
+
+    player.recv_xuanpai = true
+    local cards = {}
+    local msg_cards = msg.cards
+    for _, c in pbpairs(msg_cards) do
+        for idx, p in pairs(player.cards) do
+            if card_val[p] == c then
+                table.insert(cards, player.cards[idx])
+            end
+        end
+    end
+    local paixing, paival= cal_card_paixing(cards)
+    player.paixing = paixing
+    player.paival = paival 
+
+    --广播出去
+    local reply = Pblua.msgnew('douniu.FANPAI_R')
+    reply.uid = actor.uid
+    reply.paixing = paixing
+    reply.cards:copy_from(msg.cards)
+    broadcast_msg(msg)
+
+    --是否全部人都已决定了
+    local player_list = room.player_list
+    local is_all_recv = true
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            if not player.recv_xuanpai then
+                is_all_recv = false
+                break
+            end
+        end
+    end
+    if not is_all_recv then
+        return
+    end
+    goto_next_state(room)
+end
+
+
