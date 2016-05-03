@@ -22,6 +22,7 @@ package douniu;
 */
 
 //进入房间
+//@send
 message ENTER
 {
     //房间类型 1.100分底牌 2.xx分底牌
@@ -51,6 +52,7 @@ message ACTOR_ENTER_R
 }
 
 //退出房间
+//@send
 message EXIT
 {
 }
@@ -105,6 +107,7 @@ message FAPAI_R
 }
 
 //抢庄
+//@send
 message QIANGZHUANG 
 {
     //0。不抢 1.抢庄
@@ -132,6 +135,7 @@ message XIAZHU_LIST
 }
 
 //下注
+//@send
 message XIAZHU
 {
     //倍数
@@ -155,6 +159,7 @@ message PAI_LIST
 }
 
 //选牌
+//@send
 message XUANPAI 
 {
     //牌, 填5张牌，
