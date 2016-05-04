@@ -352,11 +352,23 @@ update_state_handler[STATE_NULL] = function(room)
 end
 
 enter_state_handler[STATE_WAITING] = function(room)
-        --开始游戏
+    --开始游戏
     local player_list = room.player_list
     for _, player in pairs(player_list) do
         player.member = MEMBER_PLAYER
+        player.recv_xuanpai = nil
+        player.recv_xiazhu = nil
+        player.recv_qiangzhuang = nil
+        player.cards = nil
+        player.paixing = nil
+        player.paival = nil
+        player.max_val= nil
+        player.ratio_list = nil
+        player.ratio_idx = nil
+        player.is_winner = nil
     end
+    room.master_player = nil
+    room.win_player = nil
 end
 
 --[[
