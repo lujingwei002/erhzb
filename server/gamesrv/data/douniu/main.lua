@@ -62,12 +62,20 @@ function create_room(type)
     return room
 end
 
---牌的点数
-card_val = {
+--牌的外观
+card_view = {
     101,102,103,104,105,106,107,108,109,110,111,112,113, 
     201,202,203,204,205,206,207,208,209,210,211,212,213, 
     301,302,303,304,305,306,307,308,309,310,311,312,313, 
     401,402,403,404,405,406,407,408,409,410,411,412,413, 
+}
+
+--牌的点数
+card_val = {
+    1,5,9, 13,17,21,25,29,33,37,41,45,49, 
+    2,6,10,14,18,22,26,30,34,38,42,46,50, 
+    3,7,11,15,19,23,27,31,35,39,43,47,51, 
+    4,8,12,16,20,24,28,32,36,40,44,48,52, 
 }
 
 
@@ -89,22 +97,34 @@ card_score = {
 
 function test()
     local card_list = {
-        1,5,9, 13,17,21,25,29,33,37,41,45,49, 
-        2,6,10,14,18,22,26,30,34,38,42,46,50, 
-        3,7,11,15,19,23,27,31,35,39,43,47,51, 
-        4,8,12,16,20,24,28,32,36,40,44,48,52, 
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,
+        14,15,16,17,18,19,20,21,22,23,24,25,26,
+        27,28,29,30,31,32,33,34,35,36,37,38,39,
+        40,41,42,43,44,45,46,47,48,49,50,51,52
     }
     local cards = random_cards(card_list)
     print('cards')
     for i = 1, #cards do
-        print(card_val[cards[i]])
+        print(card_view[cards[i]])
     end
     local val, cards = cal_best_card_paixing(cards)
     print('va', val)
     print('cards')
     for i = 1, #cards do
-        print(card_val[cards[i]])
+        print(card_view[cards[i]])
     end
+end
+
+function cal_card_max_val(cards)
+    local val_list = {card_val[cards[1]], card_val[cards[2]],card_val[cards[3]],card_val[cards[4]],card_val[cards[5]],}
+    --计算出最大的一张牌
+    local max_val = 0
+    for i = 1, #cards do
+        if max_val < val_list[i] then
+            max_val = val_list[i]
+        end
+    end
+    return max_val
 end
 
 --计算牌型
@@ -112,13 +132,7 @@ function cal_card_paixing(cards)
     local num_list = {card_num[cards[1]], card_num[cards[2]],card_num[cards[3]],card_num[cards[4]],card_num[cards[5]]}
     local score_list = {card_score[cards[1]], card_score[cards[2]],card_score[cards[3]],card_score[cards[4]],card_score[cards[5]],}
 
-    --计算出最大的一张牌
-    local max_val = 0
-    for i = 1, #cards do
-        if max_val < cards[i] then
-            max_val = cards[i]
-        end
-    end
+    local max_val = cal_card_max_val(cards)
     local total = score_list[1] + score_list[2] + score_list[3]
     if math.mod(total, 10) ~= 0 then
         return 0
@@ -139,14 +153,10 @@ end
 function cal_best_card_paixing(cards)
     local num_list = {card_num[cards[1]], card_num[cards[2]],card_num[cards[3]],card_num[cards[4]],card_num[cards[5]]}
     local score_list = {card_score[cards[1]], card_score[cards[2]],card_score[cards[3]],card_score[cards[4]],card_score[cards[5]],}
+    local val_list = {card_val[cards[1]], card_val[cards[2]],card_val[cards[3]],card_val[cards[4]],card_val[cards[5]],}
 
     --计算出最大的一张牌
-    local max_val = 0
-    for i = 1, #cards do
-        if max_val < cards[i] then
-            max_val = cards[i]
-        end
-    end
+    local max_val = cal_card_max_val(cards)
     --判断5小牛
     local total = 0
     for i = 1, #cards do
@@ -371,16 +381,17 @@ end
 enter_state_handler[STATE_QIANGZHUANG] = function(room)
     print('enter qiangzhuang', room.state)
     room.card_list = {
-        1,5,9, 13,17,21,25,29,33,37,41,45,49, 
-        2,6,10,14,18,22,26,30,34,38,42,46,50, 
-        3,7,11,15,19,23,27,31,35,39,43,47,51, 
-        4,8,12,16,20,24,28,32,36,40,44,48,52, 
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,
+        14,15,16,17,18,19,20,21,22,23,24,25,26,
+        27,28,29,30,31,32,33,34,35,36,37,38,39,
+        40,41,42,43,44,45,46,47,48,49,50,51,52
     }
     --发牌
     local player_list = room.player_list
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_OBSERVER then
             player.cards = random_cards(room.card_list)
+            player.max_val = cal_card_max_val(player.cards)
             send_fapai(player)
         end
     end
@@ -394,7 +405,7 @@ enter_state_handler[STATE_XUANPAI] = function(room)
             local msg = Pblua.msgnew('douniu.PAI_LIST')
             local msg_cards = msg.cards
             for _, c in pairs(player.cards) do
-                msg_cards:add(card_val[c])
+                msg_cards:add(card_view[c])
             end
             msg.best_paixing, _, _ = cal_best_card_paixing(player.cards)
             Actor.post_msg(player.actor, msg)
@@ -411,14 +422,14 @@ exit_state_handler[STATE_XUANPAI] = function(room)
                 --牌型
                 player.paixing = 0
                 --牌型分数
-                player.paival = 0
+                player.paival = player.max_val
                 --广播出去
                 local reply = Pblua.msgnew('douniu.FANPAI_R')
                 reply.uid = player.actor.uid
                 reply.paixing = 0
                 local msg_cards = reply.cards
                 for i = 1, #player.cards do
-                    msg_cards:add(card_val[player.cards[i]])
+                    msg_cards:add(card_view[player.cards[i]])
                 end
                 broadcast_msg(room, reply)
             end

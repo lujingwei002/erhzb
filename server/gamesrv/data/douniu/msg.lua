@@ -63,7 +63,7 @@ function send_fapai(player)
     local msg = Pblua.msgnew('douniu.FAPAI_R')
     local msg_cards = msg.cards
     for i = 1, 3 do
-        msg_cards:add(card_val[player.cards[i]])
+        msg_cards:add(card_view[player.cards[i]])
     end
     Actor.post_msg(player.actor, msg)
 end
@@ -212,14 +212,14 @@ function MSG_XUANPAI_NONE(actor, msg)
 
     player.recv_xuanpai = true
     player.paixing = 0 
-    player.paival = 0 
+    player.paival = player.max_val
 
     --广播出去
     local reply = Pblua.msgnew('douniu.FANPAI_R')
     reply.uid = actor.uid
     reply.paixing = paixing
     for _, p in pairs(player.cards) do
-        reply.cards:add(card_val[p])
+        reply.cards:add(card_view[p])
     end
     broadcast_msg(room, reply)
 
@@ -269,7 +269,7 @@ function MSG_XUANPAI_TIP(actor, msg)
     reply.uid = actor.uid
     reply.paixing = paixing
     for _, p in pairs(cards_set) do
-        reply.cards:add(card_val[p])
+        reply.cards:add(card_view[p])
     end
     broadcast_msg(room, reply)
 
