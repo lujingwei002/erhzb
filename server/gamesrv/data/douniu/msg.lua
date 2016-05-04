@@ -321,7 +321,7 @@ function MSG_XUANPAI(actor, msg)
     local reply = Pblua.msgnew('douniu.FANPAI_R')
     reply.uid = actor.uid
     reply.paixing = paixing
-    reply.cards:copy_from(msg.cards)
+    reply.cards:merge_from(msg.cards)
     broadcast_msg(room, reply)
 
     --是否全部人都已决定了
