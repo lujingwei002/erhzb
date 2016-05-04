@@ -41,6 +41,7 @@
 
 #include "ae.h"
 
+#define HAVE_EPOLL
 /* Include the best multiplexing layer supported by this system.
  * The following should be ordered by performances, descending. */
 #ifdef HAVE_EVPORT

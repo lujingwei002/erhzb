@@ -107,6 +107,7 @@ function test()
     end
 end
 
+--计算牌型
 function cal_card_paixing(cards)
     local num_list = {card_num[cards[1]], card_num[cards[2]],card_num[cards[3]],card_num[cards[4]],card_num[cards[5]]}
     local score_list = {card_score[cards[1]], card_score[cards[2]],card_score[cards[3]],card_score[cards[4]],card_score[cards[5]],}
@@ -254,17 +255,16 @@ function exit_room(actor)
     room.actor_count = room.actor_count - 1
     broadcast_actor_exit(room, actor)
     --没有人玩了
-    print('ccc', actor_count)
     if room.actor_count == 1 then
         if room.state >= STATE_QIANGZHUANG and room.state < STATE_JIESUAN  then
             room.state = STATE_XUANPAI
-            room.countdown = 0
+            room.countdown = nil
             goto_next_state(room)
         end
     elseif room.actor_count == 0 then
         room.state = 0
-        goto_next_state(room)
         room.countdown = nil
+        goto_next_state(room)
     end
 end
 
@@ -450,7 +450,6 @@ enter_state_handler[STATE_JIESUAN] = function(room)
         end
     end
     room.win_player.score = total_score
-
     --下发结算信息
     local reply = Pblua.msgnew('douniu.JIESUAN_R')
     local msg_infos = reply.infos
