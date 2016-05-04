@@ -167,6 +167,10 @@ message XUANPAI
     repeated int32 cards = 1;
 }
 
+//没牛
+message XUANPAI_NONE
+{
+}
 //提示
 message XUANPAI_TIP
 {

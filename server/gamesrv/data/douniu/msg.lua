@@ -194,6 +194,55 @@ function MSG_XIAZHU(actor, msg)
 end
 
 --提示
+function MSG_XUANPAI_NONE(actor, msg)
+    local room = actor.room
+    if not room then
+        --不在房间
+        return
+    end
+    if room.state ~= STATE_XUANPAI then
+        --状态不对
+        return
+    end
+    local player = actor.douniu_player
+    if player.recv_xuanpai then
+        --已经选过牌了
+        return
+    end
+
+    player.recv_xuanpai = true
+    player.paixing = 0 
+    player.paival = 0 
+
+    --广播出去
+    local reply = Pblua.msgnew('douniu.FANPAI_R')
+    reply.uid = actor.uid
+    reply.paixing = paixing
+    for _, p in pairs(player.cards) do
+        reply.cards:add(card_val[p])
+    end
+    broadcast_msg(room, msg)
+
+    --是否全部人都已决定了
+    local player_list = room.player_list
+    local is_all_recv = true
+    for _, player in pairs(player_list) do
+        if player.member ~= MEMBER_OBSERVER then
+            if not player.recv_xuanpai then
+                is_all_recv = false
+                break
+            end
+        end
+    end
+    if not is_all_recv then
+        return
+    end
+    goto_next_state(room)
+end
+
+
+
+--提示
 function MSG_XUANPAI_TIP(actor, msg)
     local room = actor.room
     if not room then
@@ -262,11 +311,7 @@ function MSG_XUANPAI(actor, msg)
     local cards = {}
     local msg_cards = msg.cards
     for _, c in pbpairs(msg_cards) do
-        for idx, p in pairs(player.cards) do
-            if card_val[p] == c then
-                table.insert(cards, player.cards[idx])
-            end
-        end
+        table.insert(cards, player.cards[c])
     end
     local paixing, paival= cal_card_paixing(cards)
     player.paixing = paixing
