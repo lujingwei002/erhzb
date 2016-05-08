@@ -3,14 +3,14 @@ module('Login', package.seeall)
 
 function GET(sid, uid)
     print('Login.GET', uid)
-    local actorrow = Sqlconn.select(string.format('select * from actor where uid = %d', uid))
+    local actorrow = Sqlconn.select(string.format('select * from actor where uid = %d', 1))
     if not actorrow or #actorrow == 0 then
         Gamesrv.post('Login.GET', sid, uid, nil)
         return
     end
     actorrow = actorrow[1]
 
-    local accountrow = Sqlconn.select(string.format('select * from account where uid = %d', uid))
+    local accountrow = Sqlconn.select(string.format('select * from account where uid = %d', 1))
     if not accountrow or #accountrow == 0 then
         Gamesrv.post('Login.GET', sid, uid, nil)
         return
@@ -44,6 +44,7 @@ function LOGIN(sid, openid, time, sig)
         return
     end
     result = result[1]
+    result.uid = math.random(1, 9999999)
     local uid = result.uid
     if sig ~= result.sig then
         print('签名不同')
