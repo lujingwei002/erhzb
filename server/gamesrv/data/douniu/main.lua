@@ -344,7 +344,7 @@ end
 
 --如果够人了就开始游戏
 update_state_handler[STATE_NULL] = function(room)
-    if room.actor_count < 1 then
+    if room.actor_count < 2 then
         return
     end
     --下一个状态
@@ -531,8 +531,8 @@ enter_state_handler[STATE_XIAZHU] = function(room)
     local master_player = room.master_player
     for _, player in pairs(player_list) do
         --todo
-        --if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
-        if player.member ~= MEMBER_OBSERVER then
+        if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
+        --if player.member ~= MEMBER_OBSERVER then
             local msg = Pblua.msgnew('douniu.XIAZHU_LIST')
             local ratio_list = player.ratio_list
             --如果庄倍数比你小

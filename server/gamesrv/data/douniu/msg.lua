@@ -187,6 +187,7 @@ function MSG_XIAZHU(actor, msg)
             end
         end
     end
+    print('aaaaaaaaaaaaaaaa', is_all_recv)
     if not is_all_recv then
         return
     end
@@ -267,7 +268,7 @@ function MSG_XUANPAI_TIP(actor, msg)
     --广播出去
     local reply = Pblua.msgnew('douniu.FANPAI_R')
     reply.uid = actor.uid
-    reply.paixing = paixing
+    reply.paixing = best_paixing
     for _, p in pairs(cards_set) do
         reply.cards:add(card_view[p])
     end
