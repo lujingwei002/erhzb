@@ -8,6 +8,7 @@ function GET(sid, uid, data)
     local actordata = Pblua.msgnew('dbproto.Actor')
     actordata:parse_from_string(data or '')
     actordata.uid = uid
+    actordata.username = tostring(uid)--'叼你怕了吗'..uid
     print(actordata:debug_string())
     --Dbclient.post('Login.SET', uid, actordata:tostring())
     local reply = Pblua.msgnew('login.LOGIN_R')
