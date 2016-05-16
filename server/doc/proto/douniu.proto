@@ -98,7 +98,7 @@ message ROOM_INFO_R
     //倒计时
     optional int32 countdown = 2[default = 0];
     //每个玩家的信息
-    repeated PlayerInfo player_list = 3;
+    repeated douniu.PlayerInfo player_list = 3;
 }
 
 //发牌, 这个消息并不会广播，只会发给自己, 告诉你哪三张牌

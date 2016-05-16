@@ -264,10 +264,15 @@ function exit_room(actor)
     actor.douniu_player = nil
     room.actor_count = room.actor_count - 1
     broadcast_actor_exit(room, actor)
+    broadcast_room_info(room)
     --没有人玩了
     if room.actor_count == 1 then
         if room.state >= STATE_QIANGZHUANG and room.state < STATE_JIESUAN  then
             room.state = STATE_XUANPAI
+            room.countdown = nil
+            goto_next_state(room)
+        else
+            room.state = STATE_NULL - 1
             room.countdown = nil
             goto_next_state(room)
         end
@@ -366,6 +371,7 @@ enter_state_handler[STATE_WAITING] = function(room)
         player.ratio_list = nil
         player.ratio_idx = nil
         player.is_winner = nil
+        player.cards = {}
     end
     room.master_player = nil
     room.win_player = nil
@@ -467,9 +473,9 @@ enter_state_handler[STATE_JIESUAN] = function(room)
     local player_list = room.player_list
     local total_score = 0
     for _, player in pairs(player_list) do
-        if not player.is_winner and player.member ~= MEMBER_OBSERVER then
+        if player.member ~= MEMBER_MASTER and player.member ~= MEMBER_OBSERVER then
             player.score = -room.min_score * player.recv_xiazhu
-            total_score = total_score + player.score
+            total_score = total_score - player.score
         end
     end
     room.win_player.score = total_score

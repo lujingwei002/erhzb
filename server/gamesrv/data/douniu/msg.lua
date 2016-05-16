@@ -16,7 +16,7 @@ function MSG_ENTER(actor, msg)
     Actor.post_msg(actor, reply)
     
     broadcast_actor_enter(room, actor)
-    send_room_info(actor, room)
+    broadcast_room_info(room)
 end
 
 function MSG_EXIT(actor, msg)
@@ -69,7 +69,7 @@ function send_fapai(player)
 end
 
 --广播房间的状态
-function send_room_info(actor, room)
+function broadcast_room_info(room)
     local msg = Pblua.msgnew('douniu.ROOM_INFO_R')
     msg.state = room.state
     msg.countdown = room.countdown
@@ -90,7 +90,8 @@ function send_room_info(actor, room)
             msg_cards:add(c)
         end
     end
-    Actor.post_msg(actor, msg)
+    --Actor.post_msg(actor, msg)
+    broadcast_msg(room, msg)
 end
 
 --抢庄
