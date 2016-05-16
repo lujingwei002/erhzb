@@ -363,6 +363,7 @@ enter_state_handler[STATE_WAITING] = function(room)
         player.member = MEMBER_PLAYER
         player.recv_xuanpai = nil
         player.recv_xiazhu = nil
+        player.ratio = 1
         player.recv_qiangzhuang = nil
         player.cards = nil
         player.paixing = nil
@@ -474,7 +475,7 @@ enter_state_handler[STATE_JIESUAN] = function(room)
     local total_score = 0
     for _, player in pairs(player_list) do
         if player.member ~= MEMBER_MASTER and player.member ~= MEMBER_OBSERVER then
-            player.score = -room.min_score * player.recv_xiazhu
+            player.score = -room.min_score * player.ratio
             total_score = total_score - player.score
         end
     end
@@ -487,7 +488,10 @@ enter_state_handler[STATE_JIESUAN] = function(room)
         if player.member ~= MEMBER_OBSERVER then
             local info = msg_infos:add()
             info.uid = player.actor.uid
-            info.ratio = player.recv_xiazhu
+            local actordata = player.actor.actordata
+            info.username = actordata.username
+            info.headimg = actordata.headimg
+            info.ratio = player.ratio
             info.paixing = player.paixing
             info.score = player.score
             info.is_winner = player.is_winner and 1 or 0
@@ -561,11 +565,12 @@ exit_state_handler[STATE_XIAZHU] = function(room)
         --if player.member ~= MEMBER_OBSERVER and player.member ~= MEMBER_MASTER then
         if player.member ~= MEMBER_OBSERVER then
             if not player.recv_xiazhu then
-                player.recv_xiazhu = player.ratio_list[2]
+                player.ratio = player.ratio_list[2]
+                player.recv_xiazhu = true
                 --广播出去
                 local reply = Pblua.msgnew('douniu.XIAZHU_R')
                 reply.uid = player.actor.uid
-                reply.ratio = player.recv_xiazhu
+                reply.ratio = player.ratio
                 broadcast_msg(room, reply)
             end
         end

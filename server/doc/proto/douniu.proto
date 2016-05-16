@@ -200,6 +200,10 @@ message JieSuanInfo
     optional int32 is_master = 5[default = 0];
     //是否胜利
     optional int32 is_winner = 6[default = 0];
+    //名字
+    optional string username = 7[default = ''];
+    //头像
+    optional string headimg = 8[default = ''];
 }
 
 //结算

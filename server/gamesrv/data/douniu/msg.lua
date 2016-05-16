@@ -170,7 +170,8 @@ function MSG_XIAZHU(actor, msg)
         return
     end
 
-    player.recv_xiazhu = msg.ratio
+    player.recv_xiazhu = true
+    player.ratio = msg.ratio
     --广播出去
     local reply = Pblua.msgnew('douniu.XIAZHU_R')
     reply.uid = actor.uid
